@@ -2,223 +2,251 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>漫画分镜：那间农民房 (互动版)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>漫画分镜：那间农民房 (剧情重制版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- 引入特殊字体以增加漫画感 -->
+    <!-- 引入特殊字体 -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=Zhi+Mang+Xing&display=swap" rel="stylesheet">
 
     <style>
-        /* 漫画风格基础设定 */
-        body {
-            background-color: #222; /* 改为深色背景，突出漫画主体 */
+        /* 全屏沉浸模式 */
+        body, html {
+            height: 100%;
+            margin: 0;
+            background-color: #000; /* 纯黑背景，影院感 */
             font-family: 'Noto Serif SC', serif;
-            color: #ccc; /* 文字颜色调浅以适应深背景 */
-            scroll-behavior: smooth; /* 全局平滑滚动 */
-        }
-        
-        .comic-page {
-            background-color: white;
-            /* 关键修改：宽度改为 92% 以留出左右缝隙 */
-            width: 92%; 
-            max-width: 600px;
-            margin: 0 auto 30px auto; /* 页面间距 */
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5); /* 加深阴影，增加立体感 */
-            padding: 20px;
-            border: 1px solid #111;
-            overflow: hidden;
-            position: relative;
-            border-radius: 4px; /* 微微圆角，像纸张 */
+            color: #ccc;
+            overflow: hidden; /* 禁止滚动 */
         }
 
-        /* 漫画格子 */
+        /* 幻灯片容器 */
+        #slider-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        /* 每一页（幻灯片） */
+        .slide {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.95);
+            width: 92%;
+            max-width: 500px; /* 限制最大宽度，保持漫画比例 */
+            height: auto;
+            max-height: 90vh; /* 确保不超出屏幕高度 */
+            opacity: 0;
+            transition: opacity 0.8s ease, transform 0.8s ease;
+            pointer-events: none; /* 隐藏时不响应点击 */
+            z-index: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .slide.active {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+            pointer-events: auto;
+            z-index: 10;
+        }
+
+        /* 漫画纸张样式 */
+        .comic-paper {
+            background-color: white;
+            padding: 15px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            border: 1px solid #333;
+            border-radius: 2px;
+            overflow: hidden; /* 防止内容溢出 */
+            color: #1a1a1a;
+        }
+
+        /* 标题页特效 */
+        #page-0 {
+            background: transparent;
+            box-shadow: none;
+            border: none;
+            text-align: center;
+            color: #fff;
+        }
+        
+        /* 标题震动动画 */
+        .title-shake {
+            animation: shake-constant 0.1s infinite;
+            display: inline-block;
+        }
+
+        /* 漫画格子通用样式 */
         .panel {
             border: 3px solid #000;
             position: relative;
             overflow: hidden;
             background: #fff;
-            transition: all 0.3s ease;
-            min-height: 200px;
-            color: #1a1a1a; /* 格子内文字保持深色 */
+            min-height: 150px; /* 稍微增加高度以容纳更多文字 */
+            margin-bottom: 8px;
         }
 
-        /* 网点纸效果 (Manga Screentone) */
+        /* 各种特效类 (保持不变) */
+        .dark-mood .comic-paper {
+            background-color: #1a1a1a;
+            color: #fff;
+            border-color: #555;
+        }
+        .dark-mood .panel {
+            background-color: #000;
+            border-color: #666;
+            color: #fff;
+        }
+
+        /* 动画关键帧 */
+        @keyframes shake-constant {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            50% { transform: translate(-1px, -1px) rotate(-1deg); }
+            100% { transform: translate(1px, -1px) rotate(1deg); }
+        }
+        
+        @keyframes shake-hard {
+            0% { transform: translate(2px, 2px) rotate(0deg); }
+            20% { transform: translate(-2px, -4px) rotate(-2deg); }
+            40% { transform: translate(-4px, 0px) rotate(2deg); }
+            60% { transform: translate(4px, 2px) rotate(0deg); }
+            80% { transform: translate(-2px, -2px) rotate(2deg); }
+            100% { transform: translate(2px, -4px) rotate(-2deg); }
+        }
+
+        .shake-hard { animation: shake-hard 0.2s infinite; }
+        
+        .pulse-fear { animation: pulse-shadow 2s infinite; }
+        @keyframes pulse-shadow {
+            0% { box-shadow: inset 0 0 20px #000; }
+            50% { box-shadow: inset 0 0 80px #000; }
+            100% { box-shadow: inset 0 0 20px #000; }
+        }
+
         .screentone-dots {
             background-image: radial-gradient(#888 15%, transparent 16%);
             background-size: 4px 4px;
             opacity: 0.2;
         }
         
-        .screentone-lines {
-            background: repeating-linear-gradient(
-                45deg,
-                #fff,
-                #fff 10px,
-                #ccc 10px,
-                #ccc 12px
-            );
-        }
-
-        .dark-mood {
-            background-color: #000;
-            color: #fff;
-        }
-        
-        .dark-mood .panel {
-            border-color: #444;
-            background-color: #1a1a1a;
-            color: #fff;
-        }
-
-        /* 对话框与旁白 */
-        .bubble {
-            background: #fff;
-            border: 2px solid #000;
-            border-radius: 50%;
-            padding: 15px;
-            position: absolute;
-            font-size: 0.9rem;
-            line-height: 1.4;
-            z-index: 10;
-            color: #000;
-            box-shadow: 2px 2px 0px rgba(0,0,0,0.1);
-            font-family: 'Noto Serif SC', serif;
-        }
-
-        .bubble::after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 20px;
-            border-width: 10px 10px 0;
-            border-style: solid;
-            border-color: #000 transparent;
-            display: block;
-            width: 0;
-        }
-
-        .box-narration {
-            background: #000;
-            color: #fff;
-            padding: 8px 12px;
-            border: 1px solid #fff;
-            font-size: 0.85rem;
-            position: absolute;
-            z-index: 10;
-            box-shadow: 3px 3px 0px rgba(0,0,0,0.3);
-        }
-
-        .inner-thought {
-            border: 2px dashed #000;
-            background: rgba(255,255,255,0.9);
-            border-radius: 10px;
-            padding: 10px;
-            color: #000;
-        }
-
-        /* 音效字 (SFX) */
-        .sfx {
-            font-family: 'Zhi Mang Xing', cursive;
-            position: absolute;
-            font-size: 3rem;
-            font-weight: bold;
-            color: #000;
-            z-index: 20;
-            text-shadow: 2px 2px 0 #fff, -1px -1px 0 #fff;
-            pointer-events: none;
-        }
-
-        .sfx-horror {
-            font-family: 'Ma Shan Zheng', cursive;
-            color: #8b0000;
-            text-shadow: 2px 2px 4px #000;
-        }
-
-        /* 动画 */
-        @keyframes shake {
-            0% { transform: translate(1px, 1px) rotate(0deg); }
-            10% { transform: translate(-1px, -2px) rotate(-1deg); }
-            20% { transform: translate(-3px, 0px) rotate(1deg); }
-            30% { transform: translate(3px, 2px) rotate(0deg); }
-            40% { transform: translate(1px, -1px) rotate(1deg); }
-            50% { transform: translate(-1px, 2px) rotate(-1deg); }
-            60% { transform: translate(-3px, 1px) rotate(0deg); }
-            70% { transform: translate(3px, 1px) rotate(-1deg); }
-            80% { transform: translate(-1px, -1px) rotate(1deg); }
-            90% { transform: translate(1px, 2px) rotate(0deg); }
-            100% { transform: translate(1px, -2px) rotate(-1deg); }
-        }
-
-        .shake-constant {
-            animation: shake 0.5s infinite;
-        }
-
-        .shake-hard {
-            animation: shake 0.1s infinite;
-        }
-
-        .pulse-fear {
-            animation: pulse-shadow 2s infinite;
-        }
-
-        @keyframes pulse-shadow {
-            0% { box-shadow: inset 0 0 20px #000; }
-            50% { box-shadow: inset 0 0 50px #000; }
-            100% { box-shadow: inset 0 0 20px #000; }
-        }
-
-        /* 抽象符号代替绘画 */
-        .symbol {
-            font-size: 4rem;
-            color: #333;
-            opacity: 0.8;
-        }
-        
         .speed-lines {
             background: repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(0,0,0,0.1) 40px, rgba(0,0,0,0.1) 42px);
-            position: absolute;
-            inset: 0;
-            z-index: 1;
+            position: absolute; inset: 0; z-index: 1;
         }
 
         .focus-lines {
-            background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.8) 150%);
-            position: absolute;
-            inset: 0;
-            z-index: 2;
+            background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.9) 150%);
+            position: absolute; inset: 0; z-index: 2;
         }
 
-        /* AI Feature Styles */
-        .ai-btn {
-            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-            color: white;
-            border: 2px solid #fff;
-            padding: 8px 16px;
-            border-radius: 999px;
-            font-family: 'Noto Serif SC', serif;
+        /* 字体与音效 */
+        .sfx {
+            font-family: 'Zhi Mang Xing', cursive;
+            position: absolute;
             font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.9rem;
-            z-index: 50;
+            color: #000;
+            z-index: 20;
+            text-shadow: 2px 2px 0 #fff;
+            pointer-events: none;
+        }
+        .sfx-horror {
+            font-family: 'Ma Shan Zheng', cursive;
+            color: #8b0000;
+            text-shadow: 1px 1px 5px #000;
+        }
+
+        .bubble {
+            background: #fff;
+            border: 2px solid #000;
+            border-radius: 12px;
+            padding: 8px 12px;
+            position: absolute;
+            font-size: 0.8rem;
+            line-height: 1.3;
+            z-index: 10;
+            color: #000;
+            box-shadow: 2px 2px 0 rgba(0,0,0,0.2);
+        }
+        .box-narration {
+            background: #000;
+            color: #fff;
+            padding: 5px 8px;
+            border: 1px solid #fff;
+            font-size: 0.8rem;
+            line-height: 1.4;
+            position: absolute;
+            z-index: 10;
+            max-width: 90%;
         }
         
-        .ai-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 12px rgba(168, 85, 247, 0.4);
+        /* 导航控制区 (点击屏幕左右切换) */
+        .nav-area {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 30%;
+            z-index: 50;
+            cursor: pointer;
+        }
+        .nav-prev { left: 0; }
+        .nav-next { right: 0; }
+        
+        /* 底部控制栏 */
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            display: flex;
+            gap: 15px;
+            align-items: center;
         }
 
+        .ctrl-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.5);
+            color: white;
+            border-radius: 50px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .ctrl-btn:hover { background: rgba(255,255,255,0.4); }
+        .ctrl-btn.playing { background: #8b0000; border-color: red; color: #ffcccc; animation: pulse-btn 1s infinite; }
+
+        @keyframes pulse-btn {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .page-indicator {
+            color: #666;
+            font-size: 0.8rem;
+            position: fixed;
+            bottom: 10px;
+            right: 15px;
+        }
+
+        /* 模拟的聊天框 */
         .ai-modal {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.85);
+            background: rgba(0,0,0,0.9);
             z-index: 1000;
             display: flex;
             justify-content: center;
@@ -227,588 +255,466 @@
             pointer-events: none;
             transition: opacity 0.3s;
         }
-
-        .ai-modal.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
+        .ai-modal.active { opacity: 1; pointer-events: auto; }
         .chat-box {
-            width: 90%;
-            max-width: 400px;
-            background: #1a1a1a;
-            border: 2px solid #444;
-            border-radius: 12px;
-            padding: 20px;
-            color: #eee;
-            box-shadow: 0 0 30px rgba(168, 85, 247, 0.2);
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
+            width: 90%; max-width: 400px;
+            background: #111; border: 1px solid #444;
+            padding: 20px; border-radius: 8px; color: #ccc;
         }
-
-        .chat-history {
-            max-height: 300px;
-            overflow-y: auto;
-            border: 1px solid #333;
-            padding: 10px;
-            background: #000;
-            border-radius: 8px;
-            font-size: 0.9rem;
-        }
-
-        .chat-msg {
-            margin-bottom: 8px;
-            padding: 8px;
-            border-radius: 6px;
-        }
+        .chat-history { height: 200px; overflow-y: auto; background: #000; padding: 10px; margin-bottom: 10px; }
+        .chat-msg { margin-bottom: 5px; padding: 5px; border-radius: 4px; font-size: 0.9rem; }
         .chat-msg.user { background: #333; text-align: right; }
-        .chat-msg.ai { background: #2d0f0f; border-left: 3px solid #ef4444; }
+        .chat-msg.ai { background: #220000; color: #ff9999; }
 
-        .loading-dots:after {
-            content: '.';
-            animation: dots 1.5s steps(5, end) infinite;
-        }
-        @keyframes dots {
-            0%, 20% { content: '.'; }
-            40% { content: '..'; }
-            60% { content: '...'; }
-            80%, 100% { content: ''; }
-        }
-
-        /* Auto Play Button Style */
-        .autoplay-control {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 100;
-            background: #000;
-            color: #fff;
-            border: 2px solid #fff;
-            border-radius: 50px;
-            padding: 10px 20px;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            font-family: 'Noto Serif SC', serif;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s;
-        }
-        .autoplay-control:hover {
-            background: #333;
-            transform: scale(1.05);
-        }
-        .autoplay-control.playing {
-            background: #red-800;
-            border-color: #ff0000;
-            color: #ffcccc;
-        }
-
-        /* Progress Bar for Autoplay */
-        .progress-bar-container {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 5px;
-            background: transparent;
-            z-index: 99;
-        }
-        .progress-bar {
-            height: 100%;
-            background: red;
-            width: 0%;
-            transition: width 0.1s linear;
-        }
+        /* 隐藏滚动条 */
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
 
     </style>
 </head>
-<body class="bg-gray-200">
+<body>
+    
+    <!-- 
+        恐怖环境音效 BGM
+        Source: Google Actions Sound Library (Horror Ambience)
+    -->
+    <audio id="bgm" loop preload="auto">
+        <source src="https://actions.google.com/sounds/v1/horror/horror_ambience.ogg" type="audio/ogg">
+    </audio>
 
-    <!-- 自动播放按钮 -->
-    <button id="autoplayBtn" class="autoplay-control" onclick="toggleAutoPlay()">
-        <i class="fas fa-play"></i> 自动播放
-    </button>
-    <div class="progress-bar-container">
-        <div id="progressBar" class="progress-bar"></div>
-    </div>
+    <div id="slider-container">
+        <!-- 隐形点击区域 -->
+        <div class="nav-area nav-prev" onclick="prevSlide()" title="上一页"></div>
+        <div class="nav-area nav-next" onclick="nextSlide()" title="下一页"></div>
 
-    <!-- 标题页 -->
-    <div class="w-[92%] max-w-[600px] mx-auto pt-10 pb-5 text-center" id="page-0">
-        <h1 class="text-5xl font-bold mb-2 font-serif tracking-widest text-white">那间农民房</h1>
-        <p class="text-gray-400 text-sm">风格：写实惊悚</p>
-    </div>
+        <!-- Title Slide (Page 0) -->
+        <div class="slide active" id="slide-0">
+            <div class="flex flex-col items-center justify-center h-full">
+                <h1 class="text-6xl md:text-8xl font-bold mb-4 font-serif tracking-widest text-red-600 title-shake" style="font-family: 'Ma Shan Zheng'">
+                    那间<br>农民房
+                </h1>
+                <p class="text-gray-500 text-sm mt-8 opacity-70">点击屏幕开启恐怖之旅...</p>
+                <i class="fas fa-chevron-down text-gray-700 mt-4 animate-bounce"></i>
+            </div>
+        </div>
 
-    <!-- 第1页：搬家与异常 -->
-    <div class="comic-page" id="page-1">
-        <div class="absolute top-0 right-0 bg-black text-white px-2 text-xs">Page 1</div>
-        
-        <div class="grid grid-cols-2 gap-2 h-full">
-            <!-- 格1：搬家 -->
-            <div class="panel col-span-2 h-48 flex items-center justify-center bg-gray-100">
-                <i class="fas fa-city text-6xl text-gray-300 absolute left-10"></i>
-                <div class="flex items-end z-10">
-                    <i class="fas fa-person-walking-luggage text-5xl mr-4"></i>
-                    <i class="fas fa-dog text-2xl mb-1"></i>
+        <!-- Slide 1 -->
+        <div class="slide" id="slide-1">
+            <div class="comic-paper h-full flex flex-col justify-center">
+                <div class="text-xs text-right text-gray-400 mb-1">Page 1</div>
+                <!-- Panel 1: 搬家 -->
+                <div class="panel h-40 bg-gray-100 flex items-center justify-center relative">
+                    <i class="fas fa-city text-6xl text-gray-300 absolute left-4"></i>
+                    <div class="flex items-end z-10">
+                        <i class="fas fa-person-walking-luggage text-4xl mr-2"></i>
+                        <i class="fas fa-dog text-xl mb-1"></i>
+                    </div>
+                    <div class="box-narration top-2 left-2">2023年，原房东突然不让养狗，我被迫连夜搬家。</div>
                 </div>
-                <div class="box-narration top-2 left-2">2023年，租的地方不让养狗，只能搬家。</div>
-            </div>
-
-            <!-- 格2 & 3：新房 -->
-            <div class="panel h-40 flex items-center justify-center relative">
-                <div class="absolute inset-0 bg-white"></div> <!-- 白墙暗示 -->
-                <i class="fas fa-house text-4xl text-gray-400"></i>
-                <div class="box-narration bottom-2 right-2 max-w-[80%]">房租便宜，墙壁粉刷得特别新。</div>
-            </div>
-            <div class="panel h-40 flex items-center justify-center relative">
-                <i class="fas fa-boxes-stacked text-3xl absolute left-2 bottom-2 text-gray-400"></i>
-                <i class="fas fa-dog text-3xl absolute right-4 top-10 transform scale-x-[-1] text-black"></i>
-                <div class="text-xs absolute right-4 top-24 font-bold">盯着卧室...</div>
-            </div>
-
-            <!-- 格4：狗叫 (特写) -->
-            <div class="panel col-span-2 h-48 relative flex items-center justify-center overflow-hidden border-4 border-black">
-                <div class="speed-lines"></div>
-                <i class="fas fa-dog text-8xl z-10 transform -scale-x-100"></i>
-                <div class="sfx top-4 left-10 shake-hard">汪!!</div>
-                <div class="sfx top-10 right-10 shake-hard text-5xl">汪汪!!</div>
-                <div class="sfx bottom-4 left-20 shake-hard">汪!</div>
-            </div>
-
-            <!-- 格5：骂狗 -->
-            <div class="panel col-span-2 h-32 flex items-center justify-center relative">
-                <i class="fas fa-user text-5xl absolute left-10"></i>
-                <div class="bubble left-24 top-4 w-48">
-                    “叫什么叫！发神经啊！再叫揍你！”
+                <!-- Panel 2: 新房 & 狗 -->
+                <div class="flex gap-2 h-40">
+                    <div class="panel flex-1 flex items-center justify-center relative">
+                        <div class="box-narration bottom-2 right-2 text-xs">好不容易找到这间，房租便宜，而且墙壁粉刷得雪白，看着很干净。</div>
+                    </div>
+                    <div class="panel flex-1 flex items-center justify-center relative">
+                        <i class="fas fa-dog text-3xl absolute right-2 top-4 transform scale-x-[-1] text-black"></i>
+                        <div class="bubble right-2 top-14 text-xs">“乖，进屋了。”</div>
+                        <div class="text-xs absolute right-2 bottom-2 text-gray-500">它却死死盯着卧室...</div>
+                    </div>
                 </div>
-                <div class="box-narration bottom-2 right-2">当时我以为它犯病了...</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 第2页：第一夜 -->
-    <div class="comic-page" id="page-2">
-        <div class="absolute top-0 right-0 bg-black text-white px-2 text-xs">Page 2</div>
-        <div class="grid grid-cols-2 gap-2">
-            <!-- 格1：狗的低吼 -->
-            <div class="panel col-span-1 h-32 flex items-end justify-center bg-gray-800 text-white relative">
-                <div class="focus-lines"></div>
-                <i class="fas fa-dog text-4xl mb-2 z-10 text-gray-300"></i>
-                <div class="sfx text-white text-xl top-2 right-2" style="font-family: sans-serif">呜噜噜...嘶...</div>
-            </div>
-
-            <!-- 格2：准备睡觉 -->
-            <div class="panel col-span-1 h-32 bg-gray-900 flex items-center justify-center">
-                <i class="fas fa-bed text-4xl text-gray-500"></i>
-                <div class="box-narration top-2 left-2">平时它都非要跟我上床睡的。</div>
-            </div>
-
-            <!-- 格3：对峙 -->
-            <div class="panel col-span-2 h-40 bg-gray-900 relative">
-                <!-- 卧室视角看门口 -->
-                <div class="absolute inset-y-0 left-0 w-2/3 border-r-2 border-black bg-gray-800"></div> 
-                <div class="absolute bottom-2 left-10 text-white text-xs">我是卧室</div>
-                
-                <!-- 门口 -->
-                <div class="absolute inset-y-0 right-0 w-1/3 bg-gray-600 flex items-end justify-center pb-4">
-                    <i class="fas fa-dog text-2xl text-black"></i>
-                </div>
-                
-                <div class="bubble left-1/4 top-1/4">“进来啊，睡觉了。”</div>
-                <div class="box-narration bottom-2 right-2">那天它死活不肯过那条线。</div>
-            </div>
-
-            <!-- 格4：独自入睡 -->
-            <div class="panel col-span-2 h-32 bg-black flex items-center justify-center">
-                <div class="text-gray-500 text-sm italic">（关灯）</div>
-                <div class="box-narration bottom-2 left-1/2 transform -translate-x-1/2">我也没管，太累了，就自己睡了。</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 第3页：鬼压床 (高潮) -->
-    <div class="comic-page dark-mood" id="page-3">
-        <div class="absolute top-0 right-0 bg-white text-black px-2 text-xs">Page 3</div>
-        
-        <div class="grid grid-rows-4 gap-2 h-[600px]">
-            <!-- 格1：迷糊 -->
-            <div class="panel flex items-center justify-center relative filter blur-sm">
-                <i class="fas fa-face-dizzy text-6xl text-gray-500"></i>
-                <div class="box-narration top-2 left-2">半夜，迷迷糊糊...</div>
-            </div>
-
-            <!-- 格2：门口的人影 -->
-            <div class="panel bg-black flex items-center justify-center relative border-gray-600">
-                <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black z-10"></div>
-                <!-- 模糊的女人剪影 -->
-                <div class="h-32 w-10 bg-gray-800 rounded-full blur-md transform scale-y-150 opacity-50"></div>
-                <div class="box-narration bottom-2 right-2 bg-gray-800 border-gray-600">感觉门口...站着个女人。</div>
-            </div>
-
-            <!-- 格3：惊醒 -->
-            <div class="panel h-24 flex items-center justify-center relative">
-                <div class="focus-lines"></div>
-                <i class="fas fa-eye text-8xl text-white z-10"></i>
-                <div class="box-narration top-0 left-0 bg-red-900 border-none">清醒了！</div>
-            </div>
-
-            <!-- 格4：动弹不得 -->
-            <div class="panel flex-grow relative bg-gray-900 pulse-fear border-red-900 border-4">
-                <div class="absolute inset-0 flex items-center justify-center">
-                    <i class="fas fa-person-procumbent text-8xl text-gray-400 opacity-50"></i>
-                </div>
-                <!-- 束缚线条 -->
-                <div class="absolute inset-0 border-t-8 border-b-8 border-black opacity-30"></div>
-                
-                <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center w-full">
-                    <span class="text-4xl font-bold text-red-700 shake-constant block">动不了！！</span>
-                    <span class="text-xl text-gray-400 mt-2 block">喊不出来...全是冷汗...</span>
-                </div>
-                <div class="sfx-horror text-6xl absolute bottom-2 right-2 opacity-20">鬼压床</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 第4页：救星 -->
-    <div class="comic-page" id="page-4">
-        <div class="absolute top-0 right-0 bg-black text-white px-2 text-xs">Page 4</div>
-        
-        <!-- 格1：泰迪跳跃 (大格) -->
-        <div class="panel h-64 relative overflow-hidden">
-            <div class="speed-lines" style="transform: rotate(45deg);"></div>
-            <!-- 泰迪剪影 -->
-            <div class="absolute bottom-0 left-10 transform -translate-x-1/2 translate-y-10">
-                <i class="fas fa-dog text-9xl text-black transform -rotate-12"></i>
-            </div>
-            <div class="sfx text-8xl top-1/3 right-10 shake-hard">咚！！</div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-2 mt-2">
-            <!-- 格2：狂叫 -->
-            <div class="panel h-40 flex items-center justify-center relative">
-                <div class="focus-lines"></div>
-                <i class="fas fa-dog text-6xl z-10"></i>
-                <div class="sfx top-2 left-2 text-4xl">汪汪!!</div>
-                <div class="sfx bottom-2 right-2 text-5xl">吼!!</div>
-            </div>
-
-            <!-- 格3 & 4：解冻 & 开灯 -->
-            <div class="panel h-40 bg-white relative">
-                <i class="fas fa-user text-5xl absolute bottom-0 left-4 text-gray-800"></i>
-                <div class="sfx top-4 right-4 text-2xl">哈啊——！</div>
-                <div class="absolute bottom-2 right-2 text-sm font-bold">能动了！</div>
-            </div>
-            
-            <div class="panel col-span-2 h-24 bg-yellow-100 flex items-center justify-center border-yellow-500 border-4">
-                <div class="sfx text-6xl text-yellow-600">啪！(开灯)</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 第5页：不眠之夜 -->
-    <div class="comic-page" id="page-5">
-        <div class="absolute top-0 right-0 bg-black text-white px-2 text-xs">Page 5</div>
-        
-        <!-- 全景亮灯 -->
-        <div class="panel h-32 bg-yellow-50 flex items-center justify-center relative mb-2">
-            <i class="fas fa-lightbulb text-yellow-500 text-4xl absolute top-2 left-1/2 transform -translate-x-1/2"></i>
-            <i class="fas fa-dog text-3xl absolute bottom-2 left-20 transform -scale-x-100"></i>
-            <i class="fas fa-user text-4xl absolute bottom-2 right-20 text-gray-400"></i>
-            <div class="sfx text-sm top-10 left-24">汪...</div>
-        </div>
-
-        <div class="box-narration relative mb-2 mx-auto block w-max">那晚我把家里所有的灯都打开了。</div>
-
-        <!-- 蒙太奇：诡异现象 -->
-        <div class="grid grid-cols-3 gap-1 h-40">
-            <div class="panel bg-gray-100 flex flex-col items-center justify-center relative">
-                <span class="text-xs absolute top-1 left-1">客厅</span>
-                <i class="fas fa-shoe-prints text-3xl opacity-50 mt-4"></i>
-                <div class="sfx text-xl bottom-2 right-1 text-gray-500">哒哒哒</div>
-            </div>
-            <div class="panel bg-gray-100 flex flex-col items-center justify-center relative">
-                <span class="text-xs absolute top-1 left-1">厕所门</span>
-                <i class="fas fa-door-closed text-3xl opacity-50 shake-constant"></i>
-                <div class="sfx text-xl bottom-2 right-1 text-gray-500">咔嚓</div>
-            </div>
-            <div class="panel bg-gray-100 flex flex-col items-center justify-center relative">
-                <span class="text-xs absolute top-1 left-1">洗脸盆</span>
-                <i class="fas fa-soap text-3xl opacity-50 transform rotate-45"></i>
-                <div class="sfx text-xl bottom-2 right-1 font-bold">哐当!</div>
-            </div>
-        </div>
-        <div class="box-narration mt-[-10px] right-2 z-20">这房子没法住了。</div>
-    </div>
-
-    <!-- 第6页：真相大白 -->
-    <div class="comic-page" id="page-6">
-        <div class="absolute top-0 right-0 bg-black text-white px-2 text-xs">Page 6</div>
-        
-        <!-- 快递点 -->
-        <div class="panel h-32 flex items-center justify-center relative bg-white">
-            <div class="absolute top-2 left-2 text-xs border border-black px-1">几天后 快递点</div>
-            <i class="fas fa-box text-5xl text-yellow-700 mr-10"></i>
-            <i class="fas fa-user-tag text-5xl text-gray-600"></i>
-            <div class="bubble right-4 top-4">“靓仔，你住这一栋这一间啊？”</div>
-        </div>
-
-        <!-- 阴森的真相 -->
-        <div class="panel h-48 bg-gray-800 text-white relative flex items-center justify-center">
-            <div class="screentone-dots absolute inset-0"></div>
-            <i class="fas fa-user-secret text-6xl absolute left-4 opacity-80"></i>
-            <div class="bubble left-24 top-4 text-black text-xs w-48 shake-constant">
-                “偷偷告诉你...半年前...<br>有个女人是在你那间房<span class="text-red-600 font-bold">自杀</span>的。”
-            </div>
-        </div>
-
-        <!-- 恍然大悟 -->
-        <div class="panel h-32 flex items-center justify-center relative bg-black">
-            <div class="focus-lines"></div>
-            <div class="inner-thought text-center z-10 w-3/4">
-                怪不得...<br>
-                <span class="font-bold text-lg">那个房子的墙壁粉刷得那么新！</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- 第7页：结局反转 -->
-    <div class="comic-page" id="page-7">
-        <div class="absolute top-0 right-0 bg-red-600 text-white px-2 text-xs">Page 7 END</div>
-        
-        <div class="grid grid-cols-2 gap-2">
-            <!-- 找房东 -->
-            <div class="panel col-span-2 h-32 flex items-center justify-center">
-                <i class="fas fa-user-tie text-5xl mr-4"></i>
-                <div class="bubble right-10 top-4 font-bold">“退房！现在就退！我不住了！”</div>
-            </div>
-
-            <!-- 退钱 -->
-            <div class="panel col-span-1 h-32 flex items-center justify-center">
-                <i class="fas fa-money-bill-wave text-5xl text-green-600"></i>
-                <div class="box-narration bottom-0 w-full text-center text-xs">二话不说，全退了。</div>
-            </div>
-
-            <!-- 房东的脸 (关键格 - 增加AI交互) -->
-            <div class="panel col-span-1 h-32 bg-black flex items-center justify-center relative overflow-hidden border-red-900 border-2">
-                <div class="absolute inset-0 bg-gradient-to-b from-black to-red-900 opacity-50"></div>
-                <i class="fas fa-smile text-6xl text-white opacity-80"></i>
-                
-                <!-- AI Button -->
-                <button onclick="openLandlordChat()" class="ai-btn absolute bottom-1 right-1 text-xs px-2 py-1">
-                    <i class="fas fa-comment-dots"></i> 质问房东
-                </button>
-
-                <!-- 阴森的笑容 -->
-                <div class="bubble bg-black text-white border-white left-[-20px] bottom-[-10px] z-20 text-xs w-full pointer-events-none">
-                    “呵呵...怎么样？<br><span class="text-red-500 font-serif text-lg">她，凶不凶？</span>”
+                <!-- Panel 3: 狂叫 -->
+                <div class="panel h-32 flex items-center justify-center relative overflow-hidden">
+                    <div class="speed-lines"></div>
+                    <i class="fas fa-dog text-6xl z-10 transform -scale-x-100"></i>
+                    <div class="sfx top-2 left-4 shake-hard text-4xl">汪!!</div>
+                    <div class="sfx bottom-2 right-4 shake-hard text-3xl">汪汪!!</div>
+                    <div class="bubble left-4 top-10 text-xs">“你疯了吗！闭嘴！”</div>
                 </div>
             </div>
+        </div>
 
-            <!-- 最后一格：暴怒 -->
-            <div class="panel col-span-2 h-64 relative bg-white flex items-center justify-center overflow-hidden">
-                <div class="speed-lines" style="background: repeating-linear-gradient(90deg, transparent, transparent 10px, rgba(0,0,0,1) 10px, rgba(0,0,0,1) 12px);"></div>
+        <!-- Slide 2 -->
+        <div class="slide" id="slide-2">
+            <div class="comic-paper h-full flex flex-col justify-center">
+                <div class="text-xs text-right text-gray-400 mb-1">Page 2</div>
+                <div class="flex gap-2 h-32">
+                    <!-- Low growl -->
+                    <div class="panel flex-1 bg-gray-800 text-white flex items-end justify-center relative">
+                        <div class="focus-lines"></div>
+                        <i class="fas fa-dog text-3xl mb-2 z-10 text-gray-400"></i>
+                        <div class="sfx text-white text-sm top-2 right-1 font-sans">呜噜噜...</div>
+                        <div class="box-narration bottom-1 left-1 bg-transparent border-none text-[10px]">被骂后，它缩在墙角发抖。</div>
+                    </div>
+                    <!-- Bed -->
+                    <div class="panel flex-1 bg-gray-900 flex items-center justify-center text-gray-600">
+                        <i class="fas fa-bed text-3xl"></i>
+                        <div class="box-narration top-1 right-1 bg-transparent border-none text-right">平时它都要粘着我上床睡的。</div>
+                    </div>
+                </div>
+                <!-- Standoff -->
+                <div class="panel h-48 bg-gray-900 relative mt-2">
+                    <div class="absolute inset-y-0 left-0 w-2/3 border-r border-gray-600 bg-gray-800"></div> 
+                    <div class="absolute bottom-1 left-2 text-gray-500 text-xs">卧室</div>
+                    <div class="absolute inset-y-0 right-0 w-1/3 bg-gray-700 flex items-end justify-center pb-2">
+                        <i class="fas fa-dog text-xl text-black"></i>
+                    </div>
+                    <div class="bubble left-10 top-10 text-xs">“进来啊，我都关灯了。”</div>
+                    <div class="box-narration bottom-2 right-2 w-2/3">但那天，它死死守在门口，就像那里有一道看不见的墙，死活不肯踏入半步。</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 3 (Horror) -->
+        <div class="slide dark-mood" id="slide-3">
+            <div class="comic-paper h-full flex flex-col justify-center border-red-900 border-2">
+                <div class="text-xs text-right text-red-800 mb-1">Page 3</div>
                 
-                <i class="fas fa-angry text-9xl text-black z-10 transform scale-150"></i>
+                <div class="panel flex items-center justify-center filter blur-sm h-24 bg-black border-gray-700">
+                    <i class="fas fa-face-dizzy text-4xl text-gray-600"></i>
+                    <div class="box-narration top-1 left-1">半夜，我突然醒了...不，是意识醒了。</div>
+                </div>
                 
-                <div class="sfx top-4 left-4 text-6xl font-bold shake-hard z-20" style="font-family: 'Ma Shan Zheng';">马勒</div>
-                <div class="sfx bottom-4 right-4 text-6xl font-bold shake-hard z-20" style="font-family: 'Ma Shan Zheng';">戈壁!!</div>
+                <div class="panel bg-black flex items-center justify-center relative border-gray-700 h-32">
+                    <div class="h-24 w-8 bg-gray-800 rounded-full blur-md opacity-40"></div>
+                    <div class="box-narration bottom-1 right-1 bg-transparent border-none text-red-700">
+                        借着微光，我看见卧室门口...<br>站着一个长发女人。
+                    </div>
+                </div>
+
+                <div class="panel flex-grow bg-gray-900 pulse-fear border-red-900 relative flex items-center justify-center">
+                    <i class="fas fa-person-procumbent text-6xl text-gray-500 opacity-30"></i>
+                    <div class="absolute inset-0 border-t-4 border-b-4 border-black opacity-50"></div>
+                    <div class="text-center z-10">
+                        <span class="text-3xl font-bold text-red-600 shake-constant block" style="font-family: 'Ma Shan Zheng'">动不了！！</span>
+                        <p class="text-gray-400 text-xs mt-2">她过来了...正在压上来...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4 (Rescue) -->
+        <div class="slide" id="slide-4">
+            <div class="comic-paper h-full flex flex-col justify-center">
+                <div class="text-xs text-right text-gray-400 mb-1">Page 4</div>
                 
-                <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white px-2 py-1 z-30 border-2 border-black rotate-12">
-                    <span class="text-4xl font-black">气死我了!!</span>
+                <div class="panel h-48 relative overflow-hidden flex items-end">
+                    <div class="speed-lines" style="transform: rotate(45deg);"></div>
+                    <i class="fas fa-dog text-8xl text-black absolute bottom-4 left-4 transform -rotate-12"></i>
+                    <div class="sfx text-7xl top-10 right-10 shake-hard">咚！！</div>
+                    <div class="box-narration top-2 left-2 bg-white text-black border-black">就在我快窒息的时候！</div>
+                </div>
+
+                <div class="flex gap-2 mt-2 h-32">
+                    <div class="panel flex-1 flex items-center justify-center">
+                        <i class="fas fa-dog text-4xl"></i>
+                        <div class="sfx top-1 left-1 text-2xl">汪!!</div>
+                        <div class="box-narration bottom-1 right-1 text-[10px]">它冲着空气狂咬！</div>
+                    </div>
+                    <div class="panel flex-1 bg-yellow-100 flex items-center justify-center border-yellow-400">
+                        <div class="sfx text-4xl text-yellow-600">啪！</div>
+                        <div class="box-narration top-1 left-1 text-black bg-transparent border-none">压迫感消失了！</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 5 (Aftermath) -->
+        <div class="slide" id="slide-5">
+            <div class="comic-paper h-full flex flex-col justify-center">
+                <div class="text-xs text-right text-gray-400 mb-1">Page 5</div>
+                
+                <div class="panel h-32 bg-yellow-50 flex items-center justify-center relative">
+                    <i class="fas fa-lightbulb text-yellow-500 text-3xl absolute top-2 left-1/2 -translate-x-1/2"></i>
+                    <div class="box-narration bottom-2 left-2 text-black bg-white border-black w-3/4">那晚我吓得把全屋的灯都打开，抱着狗坐到了天亮。</div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-1 h-32 mt-2">
+                    <div class="panel bg-gray-100 flex flex-col items-center justify-center">
+                        <span class="text-xs mb-2">脚步声</span>
+                        <div class="sfx text-lg static">哒哒</div>
+                    </div>
+                    <div class="panel bg-gray-100 flex flex-col items-center justify-center">
+                        <span class="text-xs mb-2">门把转动</span>
+                        <div class="sfx text-lg static shake-constant">咔嚓</div>
+                    </div>
+                    <div class="panel bg-gray-100 flex flex-col items-center justify-center">
+                        <span class="text-xs mb-2">东西掉落</span>
+                        <div class="sfx text-lg static font-bold">哐当</div>
+                    </div>
+                </div>
+                <div class="box-narration bottom-4 right-4 z-20">但这只是开始，每晚都有动静...</div>
+            </div>
+        </div>
+
+        <!-- Slide 6 (Truth) -->
+        <div class="slide" id="slide-6">
+            <div class="comic-paper h-full flex flex-col justify-center">
+                <div class="text-xs text-right text-gray-400 mb-1">Page 6</div>
+                
+                <div class="panel h-24 flex items-center justify-center bg-white relative">
+                    <div class="absolute top-1 left-1 text-xs border border-black px-1">几天后 快递点</div>
+                    <i class="fas fa-box text-3xl text-yellow-700 mr-4"></i>
+                    <div class="bubble right-2 top-2 text-xs">“靓仔，你胆子真大，敢住304？”</div>
+                </div>
+
+                <div class="panel h-32 bg-gray-800 text-white relative flex items-center justify-center mt-2">
+                    <div class="screentone-dots absolute inset-0"></div>
+                    <i class="fas fa-user-secret text-4xl absolute left-4 opacity-80"></i>
+                    <div class="bubble left-20 top-4 text-black text-xs w-52 shake-constant">
+                        “半年前，有个女租客穿着红裙子在里面上吊了...<br>房东为了掩盖血迹，把墙刷了一层又一层。”
+                    </div>
+                </div>
+
+                <div class="panel h-24 bg-black flex items-center justify-center mt-2 text-white">
+                    <div class="focus-lines"></div>
+                    <div class="text-center z-10 text-sm px-4">
+                        怪不得...<br>
+                        <span class="font-bold text-lg">那墙壁白得有些刺眼！</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 7 (End) -->
+        <div class="slide" id="slide-7">
+            <div class="comic-paper h-full flex flex-col justify-center border-red-600 border-2">
+                <div class="text-xs text-right text-red-600 mb-1">Page 7 END</div>
+                
+                <div class="flex gap-2 h-24">
+                    <div class="panel flex-1 flex items-center justify-center">
+                        <div class="bubble text-xs font-bold">“退房！现在就退！这房子不干净！”</div>
+                    </div>
+                    <div class="panel flex-1 flex items-center justify-center bg-green-50">
+                        <div class="box-narration bottom-0 text-xs text-black border-black">他居然二话不说，直接退了押金。</div>
+                    </div>
+                </div>
+
+                <div class="panel h-32 bg-black flex items-center justify-center relative mt-2 border-red-900 border">
+                    <div class="absolute inset-0 bg-gradient-to-b from-black to-red-900 opacity-60"></div>
+                    <i class="fas fa-smile text-5xl text-white opacity-90"></i>
+                    <div class="bubble bg-black text-white border-white left-2 bottom-2 text-xs w-full pointer-events-none z-10">
+                        “呵呵...红色的漆很难盖住吧？<br><span class="text-red-500 font-serif text-lg">她，凶不凶？</span>”
+                    </div>
+                    <button onclick="openLandlordChat()" class="absolute bottom-1 right-1 bg-red-800 text-white text-xs px-2 py-1 rounded z-50 pointer-events-auto border border-white hover:bg-red-600">
+                        质问他
+                    </button>
+                </div>
+
+                <div class="panel flex-grow bg-white flex items-center justify-center relative overflow-hidden mt-2">
+                    <div class="speed-lines"></div>
+                    <i class="fas fa-angry text-6xl text-black z-10"></i>
+                    <div class="sfx top-2 left-2 text-4xl font-bold shake-hard z-20" style="font-family: 'Ma Shan Zheng'">CNM!!</div>
+                    <div class="absolute bottom-2 right-2 text-sm font-bold border border-black px-1 rotate-6 bg-white z-30">气死我了!!</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="text-center pb-20 text-gray-500 text-xs">
-        <p>END</p>
+    <!-- 底部控制栏 -->
+    <div class="controls">
+        <div id="playBtn" class="ctrl-btn" onclick="togglePlay()">
+            <i class="fas fa-play"></i> 播放
+        </div>
+        <div class="ctrl-btn" onclick="toggleSound()" id="soundBtn">
+            <i class="fas fa-volume-mute"></i> 声音
+        </div>
+        <div class="ctrl-btn" onclick="window.location.reload()">
+            <i class="fas fa-redo"></i> 重看
+        </div>
     </div>
 
-    <!-- AI Chat Modal -->
+    <!-- 页码指示器 -->
+    <div class="page-indicator" id="pageIndicator">Title</div>
+
+    <!-- 聊天弹窗 -->
     <div id="chat-modal" class="ai-modal">
         <div class="chat-box">
-            <div class="flex justify-between items-center border-b border-gray-600 pb-2">
-                <h3 class="font-bold text-red-500"><i class="fas fa-ghost"></i> 房东的诡异低语</h3>
-                <button onclick="closeLandlordChat()" class="text-gray-400 hover:text-white"><i class="fas fa-times"></i></button>
+            <div class="flex justify-between items-center border-b border-gray-600 pb-2 mb-2">
+                <span class="text-red-500 font-bold">房东</span>
+                <button onclick="document.getElementById('chat-modal').classList.remove('active')" class="text-gray-400">✕</button>
             </div>
             <div id="chat-history" class="chat-history">
-                <div class="chat-msg ai">
-                    “呵呵呵...你也感觉到了吗？那面墙...真的很白，对吧？”
-                </div>
+                <div class="chat-msg ai">“跑得挺快啊...她还没玩够呢。”</div>
             </div>
             <div class="flex gap-2">
-                <input type="text" id="user-input" placeholder="你想问房东什么..." 
-                    class="flex-1 bg-gray-800 border border-gray-600 text-white rounded px-3 py-2 outline-none focus:border-purple-500">
-                <button onclick="sendChat()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 rounded">
-                    <i class="fas fa-paper-plane"></i>
-                </button>
+                <input type="text" id="user-input" class="flex-1 bg-gray-800 border-gray-600 text-white rounded px-2 py-1" placeholder="骂他...">
+                <button onclick="sendChat()" class="bg-red-700 text-white px-3 rounded">发送</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Mock Data for Offline Mode
-        const landlordReplies = [
-            "呵呵...你以为退了房就没事了吗？",
-            "她很喜欢你，特别是你睡觉的时候...",
-            "那面墙，我可是刷了五遍才盖住红色呢...",
-            "没事，下一个租客会陪她的，就像你陪了她那几晚一样。",
-            "你的狗也看到了，对吧？它比你聪明，知道不该进那个房间。",
-            "有些东西，不是你搬走就能甩掉的...呵呵呵...",
-            "你知道吗？半年前那个女孩，也说感觉有人压着她...",
-            "退钱？行啊，反正这钱也是买命钱。",
-            "年轻人，火气不要这么大，小心火灭了，她就来了...",
-            "你晚上照镜子的时候，有没有觉得背后有点凉？"
+        // 配置
+        const totalSlides = 8; // 0 to 7
+        let currentSlide = 0;
+        let isPlaying = false;
+        let playTimer = null;
+        
+        // 每一页的停留时间 (毫秒)，根据阅读量预设
+        const slideDurations = [
+            3000, // Title
+            4000, // Page 1 (搬家)
+            3500, // Page 2 (第一夜)
+            4000, // Page 3 (鬼压床 - 重点)
+            3000, // Page 4 (狗救主)
+            3000, // Page 5 (后续)
+            4500, // Page 6 (真相 - 文字多)
+            6000  // Page 7 (结局 - 重点)
         ];
 
-        function mockApiCall(callback) {
-            return new Promise(resolve => {
-                setTimeout(() => {
-                    resolve(callback());
-                }, 1000 + Math.random() * 1500); 
-            });
+        // 音效控制
+        const bgm = document.getElementById('bgm');
+        let isSoundOn = false;
+
+        function toggleSound() {
+            isSoundOn = !isSoundOn;
+            const btn = document.getElementById('soundBtn');
+            
+            if(isSoundOn) {
+                btn.innerHTML = '<i class="fas fa-volume-up"></i> 声音';
+                bgm.play().catch(e => console.log("Auto-play blocked", e));
+            } else {
+                btn.innerHTML = '<i class="fas fa-volume-mute"></i> 声音';
+                bgm.pause();
+            }
         }
 
-        // --- Auto Play Logic ---
-        let autoPlayTimer = null;
-        let isPlaying = false;
-        let currentPageIndex = 0;
-        const pageCount = 8; // 0 (title) to 7
-        const PAGE_DURATION = 4000; // 4 seconds per page
+        function tryPlayAudio() {
+            // 尝试在用户交互时播放音频
+            if(!isSoundOn && bgm.paused) {
+                // 第一次交互自动开启声音
+                toggleSound(); 
+            }
+        }
 
-        function toggleAutoPlay() {
-            const btn = document.getElementById('autoplayBtn');
-            const icon = btn.querySelector('i');
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            updateSlideView();
+        });
+
+        // 切换幻灯片逻辑
+        function showSlide(index) {
+            if (index < 0 || index >= totalSlides) return;
+            
+            // 移除旧的active
+            document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+            
+            // 添加新的active
+            const newSlide = document.getElementById(`slide-${index}`);
+            if (newSlide) newSlide.classList.add('active');
+            
+            currentSlide = index;
+            updateIndicator();
+        }
+
+        function nextSlide() {
+            tryPlayAudio(); // 尝试播放声音
+            
+            if (currentSlide < totalSlides - 1) {
+                showSlide(currentSlide + 1);
+            } else {
+                stopPlay(); // 结束自动播放
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                showSlide(currentSlide - 1);
+                stopPlay(); // 手动操作打断自动播放
+            }
+        }
+
+        function updateSlideView() {
+            showSlide(currentSlide);
+        }
+
+        function updateIndicator() {
+            const ind = document.getElementById('pageIndicator');
+            ind.innerText = currentSlide === 0 ? "Title" : `${currentSlide} / ${totalSlides - 1}`;
+        }
+
+        // 播放控制
+        function togglePlay() {
+            tryPlayAudio(); // 尝试播放声音
             
             if (isPlaying) {
-                stopAutoPlay();
-                btn.innerHTML = '<i class="fas fa-play"></i> 自动播放';
-                btn.classList.remove('playing');
+                stopPlay();
             } else {
-                startAutoPlay();
-                btn.innerHTML = '<i class="fas fa-pause"></i> 停止';
-                btn.classList.add('playing');
+                startPlay();
             }
         }
 
-        function startAutoPlay() {
+        function startPlay() {
             isPlaying = true;
+            document.getElementById('playBtn').innerHTML = '<i class="fas fa-pause"></i> 暂停';
+            document.getElementById('playBtn').classList.add('playing');
             
-            // If at bottom, restart
-            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 100) {
-                currentPageIndex = 0;
-                window.scrollTo({top: 0, behavior: 'smooth'});
-                // Wait for scroll to finish a bit
-                setTimeout(playNextPage, 1000);
-            } else {
-                playNextPage();
+            // 如果在最后一页，从头开始
+            if (currentSlide === totalSlides - 1) {
+                currentSlide = 0;
+                showSlide(0);
             }
+
+            queueNextSlide();
         }
 
-        function stopAutoPlay() {
+        function stopPlay() {
             isPlaying = false;
-            if (autoPlayTimer) clearTimeout(autoPlayTimer);
-            updateProgressBar(0); // Reset bar
+            if (playTimer) clearTimeout(playTimer);
+            document.getElementById('playBtn').innerHTML = '<i class="fas fa-play"></i> 播放';
+            document.getElementById('playBtn').classList.remove('playing');
         }
 
-        function playNextPage() {
+        function queueNextSlide() {
             if (!isPlaying) return;
-
-            // Scroll to current page index logic
-            // Since pages are ids page-0 to page-7
-            // Find next page element
             
-            // First, determine which page is currently most visible to resume correctly?
-            // Simplified: just go to next in sequence or start
+            const duration = slideDurations[currentSlide] || 4000;
             
-            const targetPage = document.getElementById(`page-${currentPageIndex}`);
-            
-            if (targetPage) {
-                targetPage.scrollIntoView({behavior: 'smooth', block: 'center'});
-                
-                // Start progress bar animation
-                updateProgressBar(PAGE_DURATION);
-
-                autoPlayTimer = setTimeout(() => {
-                    currentPageIndex++;
-                    if (currentPageIndex < pageCount) {
-                        playNextPage();
-                    } else {
-                        // Stop at the end
-                        toggleAutoPlay();
-                    }
-                }, PAGE_DURATION);
-            } else {
-                // If page not found, stop
-                toggleAutoPlay();
-            }
-        }
-        
-        function updateProgressBar(duration) {
-            const bar = document.getElementById('progressBar');
-            // Reset
-            bar.style.transition = 'none';
-            bar.style.width = '0%';
-            
-            if (duration > 0) {
-                // Force reflow
-                void bar.offsetWidth; 
-                // Animate
-                bar.style.transition = `width ${duration}ms linear`;
-                bar.style.width = '100%';
-            }
+            playTimer = setTimeout(() => {
+                if (currentSlide < totalSlides - 1) {
+                    nextSlide();
+                    queueNextSlide(); // 递归调用下一页
+                } else {
+                    stopPlay();
+                }
+            }, duration);
         }
 
-        // --- Feature 1: Chat with Landlord ---
-        const chatModal = document.getElementById('chat-modal');
-        const chatHistory = document.getElementById('chat-history');
-        const userInput = document.getElementById('user-input');
+        // 聊天功能 (Mock)
+        const landlordReplies = [
+            "呵呵...红色的漆很难盖住的。",
+            "她很喜欢你，特别是你的脖子。",
+            "钱退你了，但命...不知道退不退得了。",
+            "下一位租客已经在路上了...",
+            "你的狗很有灵性，可惜它救不了你第二次。"
+        ];
 
         function openLandlordChat() {
-            chatModal.classList.add('active');
-            stopAutoPlay(); // Stop play if user interacts
+            stopPlay();
+            document.getElementById('chat-modal').classList.add('active');
         }
 
-        function closeLandlordChat() {
-            chatModal.classList.remove('active');
-        }
+        function sendChat() {
+            const input = document.getElementById('user-input');
+            const history = document.getElementById('chat-history');
+            const text = input.value.trim();
+            if(!text) return;
 
-        async function sendChat() {
-            const text = userInput.value.trim();
-            if (!text) return;
-
-            const userDiv = document.createElement('div');
-            userDiv.className = 'chat-msg user';
-            userDiv.textContent = text;
-            chatHistory.appendChild(userDiv);
-            userInput.value = '';
-            chatHistory.scrollTop = chatHistory.scrollHeight;
-
-            const loadingDiv = document.createElement('div');
-            loadingDiv.className = 'chat-msg ai loading-dots';
-            loadingDiv.textContent = '...';
-            chatHistory.appendChild(loadingDiv);
-
-            const reply = await mockApiCall(() => {
-                const randomIndex = Math.floor(Math.random() * landlordReplies.length);
-                return landlordReplies[randomIndex];
-            });
+            history.innerHTML += `<div class="chat-msg user">${text}</div>`;
+            input.value = '';
             
-            chatHistory.removeChild(loadingDiv);
-            const aiDiv = document.createElement('div');
-            aiDiv.className = 'chat-msg ai';
-            aiDiv.textContent = reply;
-            chatHistory.appendChild(aiDiv);
-            chatHistory.scrollTop = chatHistory.scrollHeight;
+            setTimeout(() => {
+                const reply = landlordReplies[Math.floor(Math.random() * landlordReplies.length)];
+                history.innerHTML += `<div class="chat-msg ai">${reply}</div>`;
+                history.scrollTop = history.scrollHeight;
+            }, 1000);
         }
-
-        userInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendChat();
+        
+        // 键盘支持
+        document.addEventListener('keydown', (e) => {
+            if(e.key === 'ArrowRight' || e.key === 'Space') nextSlide();
+            if(e.key === 'ArrowLeft') prevSlide();
         });
 
     </script>
-
 </body>
 </html>
