@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>漫画分镜：新刷的白墙 (互动版)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- 引入特殊字体以增加漫画感 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=Zhi+Mang+Xing&display=swap" rel="stylesheet">
+
+    <style>
+        /* 漫画风格基础设定 */
+        body {
+            background-color: #e5e5e5;
+            font-family: 'Noto Serif SC', serif;
+            color: #1a1a1a;
+        }
+        
+        .comic-page {
+            background-color: white;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto 40px auto;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            padding: 20px;
+            border: 1px solid #333;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 漫画格子 */
+        .panel {
+            border: 3px solid #000;
+            position: relative;
+            overflow: hidden;
+            background: #fff;
+            transition: all 0.3s ease;
+            min-height: 200px;
+        }
+
+        /* 网点纸效果 (Manga Screentone) */
+        .screentone-dots {
+            background-image: radial-gradient(#888 15%, transparent 16%);
+            background-size: 4px 4px;
+            opacity: 0.2;
+        }
+        
+        .screentone-lines {
+            background: repeating-linear-gradient(
+                45deg,
+                #fff,
+                #fff 10px,
+                #ccc 10px,
+                #ccc 12px
+            );
+        }
+
+        .dark-mood {
+            background-color: #000;
+            color: #fff;
+        }
+        
+        .dark-mood .panel {
+            border-color: #444;
+            background-color: #1a1a1a;
+        }
+
+        /* 对话框与旁白 */
+        .bubble {
+            background: #fff;
+            border: 2px solid #000;
+            border-radius: 50%;
+            padding: 15px;
+            position: absolute;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            z-index: 10;
+            color: #000;
+            box-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+            font-family: 'Noto Serif SC', serif;
+        }
+
+        .bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 20px;
+            border-width: 10px 10px 0;
+            border-style: solid;
+            border-color: #000 transparent;
+            display: block;
+            width: 0;
+        }
+
+        .box-narration {
+            background: #000;
+            color: #fff;
+            padding: 8px 12px;
+            border: 1px solid #fff;
+            font-size: 0.85rem;
+            position: absolute;
+            z-index: 10;
+            box-shadow: 3px 3px 0px rgba(0,0,0,0.3);
+        }
+
+        .inner-thought {
+            border: 2px dashed #000;
+            background: rgba(255,255,255,0.9);
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        /* 音效字 (SFX) */
+        .sfx {
+            font-family: 'Zhi Mang Xing', cursive;
+            position: absolute;
+            font-size: 3rem;
+            font-weight: bold;
+            color: #000;
+            z-index: 20;
+            text-shadow: 2px 2px 0 #fff, -1px -1px 0 #fff;
+            pointer-events: none;
+        }
+
+        .sfx-horror {
+            font-family: 'Ma Shan Zheng', cursive;
+            color: #8b0000;
+            text-shadow: 2px 2px 4px #000;
+        }
+
+        /* 动画 */
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+
+        .shake-constant {
+            animation: shake 0.5s infinite;
+        }
+
+        .shake-hard {
+            animation: shake 0.1s infinite;
+        }
+
+        .pulse-fear {
+            animation: pulse-shadow 2s infinite;
+        }
+
+        @keyframes pulse-shadow {
+            0% { box-shadow: inset 0 0 20px #000; }
+            50% { box-shadow: inset 0 0 50px #000; }
+            100% { box-shadow: inset 0 0 20px #000; }
+        }
+
+        /* 抽象符号代替绘画 */
+        .symbol {
+            font-size: 4rem;
+            color: #333;
+            opacity: 0.8;
+        }
+        
+        .speed-lines {
+            background: repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(0,0,0,0.1) 40px, rgba(0,0,0,0.1) 42px);
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+        }
+
+        .focus-lines {
+            background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.8) 150%);
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+        }
+
+        /* AI Feature Styles */
+        .ai-btn {
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            color: white;
+            border: 2px solid #fff;
+            padding: 8px 16px;
+            border-radius: 999px;
+            font-family: 'Noto Serif SC', serif;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            z-index: 50;
+        }
+        
+        .ai-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 12px rgba(168, 85, 247, 0.4);
+        }
+
+        .ai-modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .ai-modal.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .chat-box {
+            width: 90%;
+            max-width: 400px;
+            background: #1a1a1a;
+            border: 2px solid #444;
+            border-radius: 12px;
+            padding: 20px;
+            color: #eee;
+            box-shadow: 0 0 30px rgba(168, 85, 247, 0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .chat-history {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #333;
+            padding: 10px;
+            background: #000;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .chat-msg {
+            margin-bottom: 8px;
+            padding: 8px;
+            border-radius: 6px;
+        }
+        .chat-msg.user { background: #333; text-align: right; }
+        .chat-msg.ai { background: #2d0f0f; border-left: 3px solid #ef4444; }
+
+        .sequel-box {
+            background: #000;
+            color: #ccc;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px dashed #666;
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 1.2rem;
+            line-height: 1.6;
+            min-height: 100px;
+            white-space: pre-wrap;
+        }
+
+        .loading-dots:after {
+            content: '.';
+            animation: dots 1.5s steps(5, end) infinite;
+        }
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60% { content: '...'; }
+            80%, 100% { content: ''; }
+        }
+
+    </style>
+</head>
+<body class="bg-gray-200">
+
+    <!-- 标题页 -->
+    <div class="max-w-[600px] mx-auto pt-10 pb-5 text-center">
+        <h1 class="text-5xl font-bold mb-2 font-serif tracking-widest text-black">新刷的白墙</h1>
+        <p class="text-gray-600 text-sm">分镜脚本预览 | 风格：写实惊悚</p>
+    </div>
+
+    <!-- 第1页：搬家与异常 -->
+    <div class="comic-page">
+        <div class="absolute top-0 right-0 bg-black text-white px-2 text-xs">Page 1</div>
+        
+        <div class="grid grid-cols-2 gap-2 h-full">
+            <!-- 格1：搬家 -->
+            <div class="panel col-span-2 h-48 flex items-center justify-center bg-gray-100">
+                <i class="fas fa-city text-6xl text-gray-300 absolute left-10"></i>
+                <div class="flex items-end z-10">
+                    <i class="fas fa-person-walking-luggage text-5xl mr-4"></i>
+                    <i class="fas fa-dog text-2xl mb-1"></i>
+                </div>
+                <div class="box-narration top-2 left-2">2023年，租的地方不让养狗，只能搬家。</div>
+            </div>
+
+            <!-- 格2 & 3：新房 -->
+            <div class="panel h-40 flex items-center justify-center relative">
+                <div class="absolute inset-0 bg-white"></div> <!-- 白墙暗示 -->
+                <i class="fas fa-house text-4xl text-gray-400"></i>
+                <div class="box-narration bottom-2 right-2 max-w-[80%]">房租便宜，墙壁粉刷得特别新。</div>
+            </div>
+            <div class="panel h-40 flex items-center justify-center relative">
+                <i class="fas fa-boxes-stacked text-3xl absolute left-2 bottom-2 text-gray-400"></i>
+                <i class="fas fa-dog text-3xl absolute right-4 top-10 transform scale-x-[-1] text-black"></i>
+                <div class="text-xs absolute right-4 top-24 font-bold">盯着卧室...</div>
+            </div>
+
+            <!-- 格4：狗叫 (特写) -->
+            <div class="panel col-span-2 h-48 relative flex items-center justify-center overflow-hidden border-4 border-black">
+                <div class="speed-lines"></div>
+                <i class="fas fa-dog text-8xl z-10 transform -scale-x-100"></i>
+                <div class="sfx top-4 left-10 shake-hard">汪!!</div>
+                <div class="sfx top-10 right-10 shake-hard text-5xl">汪汪!!</div>
+                <div class="sfx bottom-4 left-20 shake-hard">汪!</div>
+            </div>
+
+            <!-- 格5：骂狗 -->
+            <div class="panel col-span-2 h-32 flex items-center justify-center relative">
+                <i class="fas fa-user text-5xl absolute left-10"></i>
+                <div class="bubble left-24 top-4 w-48">
+                    “叫什么叫！发神经啊！再叫揍你！”
+                </div>
+                <div class="box-narration bottom-2 right-2">当时我以为它犯病了...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 第2页：第一夜 -->
+    <div class="comic-page">
+        <div class="absolute top-0 right-0 bg-black text-white px-2 text-xs">Page 2</div>
+        <div class="grid grid-cols-2 gap-2">
+            <!-- 格1：狗的低吼 -->
+            <div class="panel col-span-1 h-32 flex items-end justify-center bg-gray-800 text-white relative">
+                <div class="focus-lines"></div>
+                <i class="fas fa-dog text-4xl mb-2 z-10 text-gray-300"></i>
+                <div class="sfx text-white text-xl top-2 right-2" style="font-family: sans-serif">呜噜噜...嘶...</div>
+            </div>
+
+            <!-- 格2：准备睡觉 -->
+            <div class="panel col-span-1 h-32 bg-gray-900 flex items-center justify-center">
+                <i class="fas fa-bed text-4xl text-gray-500"></i>
+                <div class="box-narration top-2 left-2">平时它都非要跟我上床睡的。</div>
+            </div>
+
+            <!-- 格3：对峙 -->
+            <div class="panel col-span-2 h-40 bg-gray-900 relative">
+                <!-- 卧室视角看门口 -->
+                <div class="absolute inset-y-0 left-0 w-2/3 border-r-2 border-black bg-gray-800"></div> 
+                <div class="absolute bottom-2 left-10 text-white text-xs">我是卧室</div>
+                
+                <!-- 门口 -->
+                <div class="absolute inset-y-0 right-0 w-1/3 bg-gray-600 flex items-end justify-center pb-4">
+                    <i class="fas fa-dog text-2xl text-black"></i>
+                </div>
+                
+                <div class="bubble left-1/4 top-1/4">“进来啊，睡觉了。”</div>
+                <div class="box-narration bottom-2 right-2">那天它死活不肯过那条线。</div>
+            </div>
+
+            <!-- 格4：独自入睡 -->
+            <div class="panel col-span-2 h-32 bg-black flex items-center justify-center">
+                <div class="text-gray-500 text-sm italic">（关灯）</div>
+                <div class="box-narration bottom-2 left-1/2 transform -translate-x-1/2">我也没管，太累了，就自己睡了。</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 第3页：鬼压床 (高潮) -->
+    <div class="comic-page dark-mood">
+        <div class="absolute top-0 right-0 bg-white text-black px-2 text-xs">Page 3</div>
+        
+        <div class="grid grid-rows-4 gap-2 h-[600px]">
+            <!-- 格1：迷糊 -->
+            <div class="panel flex items-center justify-center relative filter blur-sm">
+                <i class="fas fa-face-dizzy text-6xl text-gray-500"></i>
+                <div class="box-narration top-2 left-2">半夜，迷迷糊糊...</div>
+            </div>
+
+            <!-- 格2：门口的人影 -->
+            <div class="panel bg-black flex items-center justify-center relative border-gray-600">
+                <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black z-10"></div>
+                <!-- 模糊的女人剪影 -->
+                <div class="h-32 w-10 bg-gray-800 rounded-full blur-md transform scale-y-150 opacity-50"></div>
+                <div class="box-narration bottom-2 right-2 bg-gray-800 border-gray-600">感觉门口...站着个女人。</div>
+            </div>
+
+            <!-- 格3：惊醒 -->
+            <div class="panel h-24 flex items-center justify-center relative">
+                <div class="focus-lines"></div>
+                <i class="fas fa-eye text-8xl text-white z-10"></i>
+                <div class="box-narration top-0 left-0 bg-red-900 border-none">清醒了！</div>
+            </div>
+
+            <!-- 格4：动弹不得 -->
+            <div class="panel flex-grow relative bg-gray-900 pulse-fear border-red-900 border-4">
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <i class="fas fa-person-procumbent text-8xl text-gray-400 opacity-50"></i>
+                </div>
+                <!-- 束缚线条 -->
+                <div class="absolute inset-0 border-t-8 border-b-8 border-black opacity-30"></div>
+                
+                <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center w-full">
+                    <span class="text-4xl font-bold text-red-700 shake-constant block">动不了！！</span>
+                    <span class="text-xl text-gray-400 mt-2 block">喊不出来...全是冷汗...</span>
+                </div>
+                <div class="sfx-horror text-6xl absolute bottom-2 right-2 opacity-20">鬼压床</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 第4页：救星 -->
+    <div class="comic-page">
+        <div class="absolute top-0 right-0 bg-black text-white px-2 text-xs">Page 4</div>
+        
+        <!-- 格1：泰迪跳跃 (大格) -->
+        <div class="panel h-64 relative overflow-hidden">
+            <div class="speed-lines" style="transform: rotate(45deg);"></div>
+            <!-- 泰迪剪影 -->
+            <div class="absolute bottom-0 left-10 transform -translate-x-1/2 translate-y-10">
+                <i class="fas fa-dog text-9xl text-black transform -rotate-12"></i>
+            </div>
+            <div class="sfx text-8xl top-1/3 right-10 shake-hard">咚！！</div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 mt-2">
+            <!-- 格2：狂叫 -->
+            <div class="panel h-40 flex items-center justify-center relative">
+                <div class="focus-lines"></div>
+                <i class="fas fa-dog text-6xl z-10"></i>
+                <div class="sfx top-2 left-2 text-4xl">汪汪!!</div>
+                <div class="sfx bottom-2 right-2 text-5xl">吼!!</div>
+            </div>
+
+            <!-- 格3 & 4：解冻 & 开灯 -->
+            <div class="panel h-40 bg-white relative">
+                <i class="fas fa-user text-5xl absolute bottom-0 left-4 text-gray-800"></i>
+                <div class="sfx top-4 right-4 text-2xl">哈啊——！</div>
+                <div class="absolute bottom-2 right-2 text-sm font-bold">能动了！</div>
+            </div>
+            
+            <div class="panel col-span-2 h-24 bg-yellow-100 flex items-center justify-center border-yellow-500 border-4">
+                <div class="sfx text-6xl text-yellow-600">啪！(开灯)</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 第5页：不眠之夜 -->
+    <div class="comic-page">
+        <div class="absolute top-0 right-0 bg-black text-white px-2 text-xs">Page 5</div>
+        
+        <!-- 全景亮灯 -->
+        <div class="panel h-32 bg-yellow-50 flex items-center justify-center relative mb-2">
+            <i class="fas fa-lightbulb text-yellow-500 text-4xl absolute top-2 left-1/2 transform -translate-x-1/2"></i>
+            <i class="fas fa-dog text-3xl absolute bottom-2 left-20 transform -scale-x-100"></i>
+            <i class="fas fa-user text-4xl absolute bottom-2 right-20 text-gray-400"></i>
+            <div class="sfx text-sm top-10 left-24">汪...</div>
+        </div>
+
+        <div class="box-narration relative mb-2 mx-auto block w-max">那晚我把家里所有的灯都打开了。</div>
+
+        <!-- 蒙太奇：诡异现象 -->
+        <div class="grid grid-cols-3 gap-1 h-40">
+            <div class="panel bg-gray-100 flex flex-col items-center justify-center relative">
+                <span class="text-xs absolute top-1 left-1">客厅</span>
+                <i class="fas fa-shoe-prints text-3xl opacity-50 mt-4"></i>
+                <div class="sfx text-xl bottom-2 right-1 text-gray-500">哒哒哒</div>
+            </div>
+            <div class="panel bg-gray-100 flex flex-col items-center justify-center relative">
+                <span class="text-xs absolute top-1 left-1">厕所门</span>
+                <i class="fas fa-door-closed text-3xl opacity-50 shake-constant"></i>
+                <div class="sfx text-xl bottom-2 right-1 text-gray-500">咔嚓</div>
+            </div>
+            <div class="panel bg-gray-100 flex flex-col items-center justify-center relative">
+                <span class="text-xs absolute top-1 left-1">洗脸盆</span>
+                <i class="fas fa-soap text-3xl opacity-50 transform rotate-45"></i>
+                <div class="sfx text-xl bottom-2 right-1 font-bold">哐当!</div>
+            </div>
+        </div>
+        <div class="box-narration mt-[-10px] right-2 z-20">这房子没法住了。</div>
+    </div>
+
+    <!-- 第6页：真相大白 -->
+    <div class="comic-page">
+        <div class="absolute top-0 right-0 bg-black text-white px-2 text-xs">Page 6</div>
+        
+        <!-- 快递点 -->
+        <div class="panel h-32 flex items-center justify-center relative bg-white">
+            <div class="absolute top-2 left-2 text-xs border border-black px-1">几天后 快递点</div>
+            <i class="fas fa-box text-5xl text-yellow-700 mr-10"></i>
+            <i class="fas fa-user-tag text-5xl text-gray-600"></i>
+            <div class="bubble right-4 top-4">“靓仔，你住这一栋这一间啊？”</div>
+        </div>
+
+        <!-- 阴森的真相 -->
+        <div class="panel h-48 bg-gray-800 text-white relative flex items-center justify-center">
+            <div class="screentone-dots absolute inset-0"></div>
+            <i class="fas fa-user-secret text-6xl absolute left-4 opacity-80"></i>
+            <div class="bubble left-24 top-4 text-black text-xs w-48 shake-constant">
+                “偷偷告诉你...半年前...<br>有个女人是在你那间房<span class="text-red-600 font-bold">自杀</span>的。”
+            </div>
+        </div>
+
+        <!-- 恍然大悟 -->
+        <div class="panel h-32 flex items-center justify-center relative bg-black">
+            <div class="focus-lines"></div>
+            <div class="inner-thought text-center z-10 w-3/4">
+                怪不得...<br>
+                <span class="font-bold text-lg">那个房子的墙壁粉刷得那么新！</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 第7页：结局反转 -->
+    <div class="comic-page">
+        <div class="absolute top-0 right-0 bg-red-600 text-white px-2 text-xs">Page 7 END</div>
+        
+        <div class="grid grid-cols-2 gap-2">
+            <!-- 找房东 -->
+            <div class="panel col-span-2 h-32 flex items-center justify-center">
+                <i class="fas fa-user-tie text-5xl mr-4"></i>
+                <div class="bubble right-10 top-4 font-bold">“退房！现在就退！我不住了！”</div>
+            </div>
+
+            <!-- 退钱 -->
+            <div class="panel col-span-1 h-32 flex items-center justify-center">
+                <i class="fas fa-money-bill-wave text-5xl text-green-600"></i>
+                <div class="box-narration bottom-0 w-full text-center text-xs">二话不说，全退了。</div>
+            </div>
+
+            <!-- 房东的脸 (关键格 - 增加AI交互) -->
+            <div class="panel col-span-1 h-32 bg-black flex items-center justify-center relative overflow-hidden border-red-900 border-2">
+                <div class="absolute inset-0 bg-gradient-to-b from-black to-red-900 opacity-50"></div>
+                <i class="fas fa-smile text-6xl text-white opacity-80"></i>
+                
+                <!-- AI Button -->
+                <button onclick="openLandlordChat()" class="ai-btn absolute bottom-1 right-1 text-xs px-2 py-1">
+                    <i class="fas fa-comment-dots"></i> 质问房东
+                </button>
+
+                <!-- 阴森的笑容 -->
+                <div class="bubble bg-black text-white border-white left-[-20px] bottom-[-10px] z-20 text-xs w-full pointer-events-none">
+                    “呵呵...怎么样？<br><span class="text-red-500 font-serif text-lg">她，凶不凶？</span>”
+                </div>
+            </div>
+
+            <!-- 最后一格：暴怒 -->
+            <div class="panel col-span-2 h-64 relative bg-white flex items-center justify-center overflow-hidden">
+                <div class="speed-lines" style="background: repeating-linear-gradient(90deg, transparent, transparent 10px, rgba(0,0,0,1) 10px, rgba(0,0,0,1) 12px);"></div>
+                
+                <i class="fas fa-angry text-9xl text-black z-10 transform scale-150"></i>
+                
+                <div class="sfx top-4 left-4 text-6xl font-bold shake-hard z-20" style="font-family: 'Ma Shan Zheng';">马勒</div>
+                <div class="sfx bottom-4 right-4 text-6xl font-bold shake-hard z-20" style="font-family: 'Ma Shan Zheng';">戈壁!!</div>
+                
+                <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white px-2 py-1 z-30 border-2 border-black rotate-12">
+                    <span class="text-4xl font-black">气死我了!!</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Sequel Generator -->
+        <div class="mt-4 text-center">
+            <button onclick="generateSequel()" class="ai-btn w-full justify-center text-lg py-3">
+                <i class="fas fa-book-dead"></i> ✨ 生成恐怖后续剧情
+            </button>
+            <div id="sequel-container" class="sequel-box hidden">
+                <p id="sequel-text" class="loading-dots">正在通灵...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center pb-20 text-gray-500 text-xs">
+        <p>END</p>
+        <p class="mt-2">Adapted by Gemini</p>
+    </div>
+
+    <!-- AI Chat Modal -->
+    <div id="chat-modal" class="ai-modal">
+        <div class="chat-box">
+            <div class="flex justify-between items-center border-b border-gray-600 pb-2">
+                <h3 class="font-bold text-red-500"><i class="fas fa-ghost"></i> 房东的诡异低语</h3>
+                <button onclick="closeLandlordChat()" class="text-gray-400 hover:text-white"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="chat-history" class="chat-history">
+                <div class="chat-msg ai">
+                    “呵呵呵...你也感觉到了吗？那面墙...真的很白，对吧？”
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <input type="text" id="user-input" placeholder="你想问房东什么..." 
+                    class="flex-1 bg-gray-800 border border-gray-600 text-white rounded px-3 py-2 outline-none focus:border-purple-500">
+                <button onclick="sendChat()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 rounded">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mock Data for Offline Mode (无需 API Key)
+        
+        // 房东的随机阴森回复库
+        const landlordReplies = [
+            "呵呵...你以为退了房就没事了吗？",
+            "她很喜欢你，特别是你睡觉的时候...",
+            "那面墙，我可是刷了五遍才盖住红色呢...",
+            "没事，下一个租客会陪她的，就像你陪了她那几晚一样。",
+            "你的狗也看到了，对吧？它比你聪明，知道不该进那个房间。",
+            "有些东西，不是你搬走就能甩掉的...呵呵呵...",
+            "你知道吗？半年前那个女孩，也说感觉有人压着她...",
+            "退钱？行啊，反正这钱也是买命钱。",
+            "年轻人，火气不要这么大，小心火灭了，她就来了...",
+            "你晚上照镜子的时候，有没有觉得背后有点凉？"
+        ];
+
+        // 随机生成的后续剧情库
+        const sequelStories = [
+            "后续一：搬家后的第三天，你正在新租的公寓里洗澡。突然，你听到客厅传来了熟悉的脚步声——哒、哒、哒。你关掉水龙头，听到门外传来那个房东阴森的声音：“靓仔，你的快递落在那边了，我给你送来了...” 门把手开始剧烈转动，而你的狗，正对着门口疯狂摇尾巴，就像见到了熟人。",
+            "后续二：你以为逃离了那间房。但那天晚上，泰迪又开始对着你的床底狂叫。你鼓起勇气趴下去看，床底空空如也。当你抬起头时，发现天花板的角落里，有一张惨白的脸正倒吊着看着你，那是...新刷的白墙剥落后的样子。",
+            "后续三：房东把房子又租了出去，这次是一对年轻情侣。他们很满意那面雪白的墙壁。深夜，男生醒来，发现女朋友正对着墙壁发呆，嘴里喃喃自语：“好白啊...好白啊...就像我的脸一样白...” 男生惊恐地发现，墙壁上渗出了红色的手印。",
+            "后续四：你搬回了老家，以为一切都结束了。直到有一天，你翻看搬家那天拍的照片，发现那张拍泰迪对着空气叫的照片里，那面白墙上，隐隐约约浮现出一个人形的轮廓，正伸手掐着你的脖子。而那只手腕上，戴着和你女朋友一模一样的手镯。"
+        ];
+
+        // 模拟 API 调用延迟
+        function mockApiCall(callback) {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    resolve(callback());
+                }, 1000 + Math.random() * 1500); // 1.0~2.5秒随机延迟
+            });
+        }
+
+        // --- Feature 1: Chat with Landlord ---
+        const chatModal = document.getElementById('chat-modal');
+        const chatHistory = document.getElementById('chat-history');
+        const userInput = document.getElementById('user-input');
+
+        function openLandlordChat() {
+            chatModal.classList.add('active');
+        }
+
+        function closeLandlordChat() {
+            chatModal.classList.remove('active');
+        }
+
+        async function sendChat() {
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            // User Message
+            const userDiv = document.createElement('div');
+            userDiv.className = 'chat-msg user';
+            userDiv.textContent = text;
+            chatHistory.appendChild(userDiv);
+            userInput.value = '';
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+
+            // Loading state
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'chat-msg ai loading-dots';
+            loadingDiv.textContent = '...';
+            chatHistory.appendChild(loadingDiv);
+
+            // 使用 Mock 数据模拟回复
+            const reply = await mockApiCall(() => {
+                const randomIndex = Math.floor(Math.random() * landlordReplies.length);
+                return landlordReplies[randomIndex];
+            });
+            
+            chatHistory.removeChild(loadingDiv);
+            const aiDiv = document.createElement('div');
+            aiDiv.className = 'chat-msg ai';
+            aiDiv.textContent = reply;
+            chatHistory.appendChild(aiDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        // --- Feature 2: Generate Sequel ---
+        async function generateSequel() {
+            const container = document.getElementById('sequel-container');
+            const textElem = document.getElementById('sequel-text');
+            
+            container.classList.remove('hidden');
+            textElem.textContent = "正在通灵连接异界...";
+            textElem.classList.add('loading-dots');
+
+            // 使用 Mock 数据模拟生成
+            const story = await mockApiCall(() => {
+                const randomIndex = Math.floor(Math.random() * sequelStories.length);
+                return sequelStories[randomIndex];
+            });
+
+            textElem.classList.remove('loading-dots');
+            textElem.textContent = story;
+        }
+
+        // Enter key support for chat
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendChat();
+        });
+
+    </script>
+
+</body>
+</html>
