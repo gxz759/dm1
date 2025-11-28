@@ -14,22 +14,24 @@
     <style>
         /* 漫画风格基础设定 */
         body {
-            background-color: #e5e5e5;
+            background-color: #222; /* 改为深色背景，突出漫画主体 */
             font-family: 'Noto Serif SC', serif;
-            color: #1a1a1a;
+            color: #ccc; /* 文字颜色调浅以适应深背景 */
             scroll-behavior: smooth; /* 全局平滑滚动 */
         }
         
         .comic-page {
             background-color: white;
-            width: 100%;
+            /* 关键修改：宽度改为 92% 以留出左右缝隙 */
+            width: 92%; 
             max-width: 600px;
-            margin: 0 auto 40px auto;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            margin: 0 auto 30px auto; /* 页面间距 */
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5); /* 加深阴影，增加立体感 */
             padding: 20px;
-            border: 1px solid #333;
+            border: 1px solid #111;
             overflow: hidden;
             position: relative;
+            border-radius: 4px; /* 微微圆角，像纸张 */
         }
 
         /* 漫画格子 */
@@ -40,6 +42,7 @@
             background: #fff;
             transition: all 0.3s ease;
             min-height: 200px;
+            color: #1a1a1a; /* 格子内文字保持深色 */
         }
 
         /* 网点纸效果 (Manga Screentone) */
@@ -67,6 +70,7 @@
         .dark-mood .panel {
             border-color: #444;
             background-color: #1a1a1a;
+            color: #fff;
         }
 
         /* 对话框与旁白 */
@@ -112,6 +116,7 @@
             background: rgba(255,255,255,0.9);
             border-radius: 10px;
             padding: 10px;
+            color: #000;
         }
 
         /* 音效字 (SFX) */
@@ -331,9 +336,9 @@
     </div>
 
     <!-- 标题页 -->
-    <div class="max-w-[600px] mx-auto pt-10 pb-5 text-center" id="page-0">
-        <h1 class="text-5xl font-bold mb-2 font-serif tracking-widest text-black">那间农民房</h1>
-        <p class="text-gray-600 text-sm">风格：写实惊悚</p>
+    <div class="w-[92%] max-w-[600px] mx-auto pt-10 pb-5 text-center" id="page-0">
+        <h1 class="text-5xl font-bold mb-2 font-serif tracking-widest text-white">那间农民房</h1>
+        <p class="text-gray-400 text-sm">风格：写实惊悚</p>
     </div>
 
     <!-- 第1页：搬家与异常 -->
