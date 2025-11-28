@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>漫画分镜：新刷的白墙 (互动版)</title>
+    <title>漫画分镜：那间农民房 (互动版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <!-- 引入特殊字体以增加漫画感 -->
@@ -17,6 +17,7 @@
             background-color: #e5e5e5;
             font-family: 'Noto Serif SC', serif;
             color: #1a1a1a;
+            scroll-behavior: smooth; /* 全局平滑滚动 */
         }
         
         .comic-page {
@@ -259,19 +260,6 @@
         .chat-msg.user { background: #333; text-align: right; }
         .chat-msg.ai { background: #2d0f0f; border-left: 3px solid #ef4444; }
 
-        .sequel-box {
-            background: #000;
-            color: #ccc;
-            padding: 20px;
-            margin-top: 20px;
-            border: 1px dashed #666;
-            font-family: 'Ma Shan Zheng', cursive;
-            font-size: 1.2rem;
-            line-height: 1.6;
-            min-height: 100px;
-            white-space: pre-wrap;
-        }
-
         .loading-dots:after {
             content: '.';
             animation: dots 1.5s steps(5, end) infinite;
@@ -283,18 +271,73 @@
             80%, 100% { content: ''; }
         }
 
+        /* Auto Play Button Style */
+        .autoplay-control {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+            background: #000;
+            color: #fff;
+            border: 2px solid #fff;
+            border-radius: 50px;
+            padding: 10px 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            font-family: 'Noto Serif SC', serif;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        .autoplay-control:hover {
+            background: #333;
+            transform: scale(1.05);
+        }
+        .autoplay-control.playing {
+            background: #red-800;
+            border-color: #ff0000;
+            color: #ffcccc;
+        }
+
+        /* Progress Bar for Autoplay */
+        .progress-bar-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: transparent;
+            z-index: 99;
+        }
+        .progress-bar {
+            height: 100%;
+            background: red;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+
     </style>
 </head>
 <body class="bg-gray-200">
 
+    <!-- 自动播放按钮 -->
+    <button id="autoplayBtn" class="autoplay-control" onclick="toggleAutoPlay()">
+        <i class="fas fa-play"></i> 自动播放
+    </button>
+    <div class="progress-bar-container">
+        <div id="progressBar" class="progress-bar"></div>
+    </div>
+
     <!-- 标题页 -->
-    <div class="max-w-[600px] mx-auto pt-10 pb-5 text-center">
-        <h1 class="text-5xl font-bold mb-2 font-serif tracking-widest text-black">新刷的白墙</h1>
-        <p class="text-gray-600 text-sm">分镜脚本预览 | 风格：写实惊悚</p>
+    <div class="max-w-[600px] mx-auto pt-10 pb-5 text-center" id="page-0">
+        <h1 class="text-5xl font-bold mb-2 font-serif tracking-widest text-black">那间农民房</h1>
+        <p class="text-gray-600 text-sm">风格：写实惊悚</p>
     </div>
 
     <!-- 第1页：搬家与异常 -->
-    <div class="comic-page">
+    <div class="comic-page" id="page-1">
         <div class="absolute top-0 right-0 bg-black text-white px-2 text-xs">Page 1</div>
         
         <div class="grid grid-cols-2 gap-2 h-full">
@@ -341,7 +384,7 @@
     </div>
 
     <!-- 第2页：第一夜 -->
-    <div class="comic-page">
+    <div class="comic-page" id="page-2">
         <div class="absolute top-0 right-0 bg-black text-white px-2 text-xs">Page 2</div>
         <div class="grid grid-cols-2 gap-2">
             <!-- 格1：狗的低吼 -->
@@ -381,7 +424,7 @@
     </div>
 
     <!-- 第3页：鬼压床 (高潮) -->
-    <div class="comic-page dark-mood">
+    <div class="comic-page dark-mood" id="page-3">
         <div class="absolute top-0 right-0 bg-white text-black px-2 text-xs">Page 3</div>
         
         <div class="grid grid-rows-4 gap-2 h-[600px]">
@@ -424,7 +467,7 @@
     </div>
 
     <!-- 第4页：救星 -->
-    <div class="comic-page">
+    <div class="comic-page" id="page-4">
         <div class="absolute top-0 right-0 bg-black text-white px-2 text-xs">Page 4</div>
         
         <!-- 格1：泰迪跳跃 (大格) -->
@@ -460,7 +503,7 @@
     </div>
 
     <!-- 第5页：不眠之夜 -->
-    <div class="comic-page">
+    <div class="comic-page" id="page-5">
         <div class="absolute top-0 right-0 bg-black text-white px-2 text-xs">Page 5</div>
         
         <!-- 全景亮灯 -->
@@ -495,7 +538,7 @@
     </div>
 
     <!-- 第6页：真相大白 -->
-    <div class="comic-page">
+    <div class="comic-page" id="page-6">
         <div class="absolute top-0 right-0 bg-black text-white px-2 text-xs">Page 6</div>
         
         <!-- 快递点 -->
@@ -526,7 +569,7 @@
     </div>
 
     <!-- 第7页：结局反转 -->
-    <div class="comic-page">
+    <div class="comic-page" id="page-7">
         <div class="absolute top-0 right-0 bg-red-600 text-white px-2 text-xs">Page 7 END</div>
         
         <div class="grid grid-cols-2 gap-2">
@@ -572,21 +615,10 @@
                 </div>
             </div>
         </div>
-
-        <!-- AI Sequel Generator -->
-        <div class="mt-4 text-center">
-            <button onclick="generateSequel()" class="ai-btn w-full justify-center text-lg py-3">
-                <i class="fas fa-book-dead"></i> ✨ 生成恐怖后续剧情
-            </button>
-            <div id="sequel-container" class="sequel-box hidden">
-                <p id="sequel-text" class="loading-dots">正在通灵...</p>
-            </div>
-        </div>
     </div>
 
     <div class="text-center pb-20 text-gray-500 text-xs">
         <p>END</p>
-        <p class="mt-2">Adapted by Gemini</p>
     </div>
 
     <!-- AI Chat Modal -->
@@ -612,9 +644,7 @@
     </div>
 
     <script>
-        // Mock Data for Offline Mode (无需 API Key)
-        
-        // 房东的随机阴森回复库
+        // Mock Data for Offline Mode
         const landlordReplies = [
             "呵呵...你以为退了房就没事了吗？",
             "她很喜欢你，特别是你睡觉的时候...",
@@ -628,21 +658,102 @@
             "你晚上照镜子的时候，有没有觉得背后有点凉？"
         ];
 
-        // 随机生成的后续剧情库
-        const sequelStories = [
-            "后续一：搬家后的第三天，你正在新租的公寓里洗澡。突然，你听到客厅传来了熟悉的脚步声——哒、哒、哒。你关掉水龙头，听到门外传来那个房东阴森的声音：“靓仔，你的快递落在那边了，我给你送来了...” 门把手开始剧烈转动，而你的狗，正对着门口疯狂摇尾巴，就像见到了熟人。",
-            "后续二：你以为逃离了那间房。但那天晚上，泰迪又开始对着你的床底狂叫。你鼓起勇气趴下去看，床底空空如也。当你抬起头时，发现天花板的角落里，有一张惨白的脸正倒吊着看着你，那是...新刷的白墙剥落后的样子。",
-            "后续三：房东把房子又租了出去，这次是一对年轻情侣。他们很满意那面雪白的墙壁。深夜，男生醒来，发现女朋友正对着墙壁发呆，嘴里喃喃自语：“好白啊...好白啊...就像我的脸一样白...” 男生惊恐地发现，墙壁上渗出了红色的手印。",
-            "后续四：你搬回了老家，以为一切都结束了。直到有一天，你翻看搬家那天拍的照片，发现那张拍泰迪对着空气叫的照片里，那面白墙上，隐隐约约浮现出一个人形的轮廓，正伸手掐着你的脖子。而那只手腕上，戴着和你女朋友一模一样的手镯。"
-        ];
-
-        // 模拟 API 调用延迟
         function mockApiCall(callback) {
             return new Promise(resolve => {
                 setTimeout(() => {
                     resolve(callback());
-                }, 1000 + Math.random() * 1500); // 1.0~2.5秒随机延迟
+                }, 1000 + Math.random() * 1500); 
             });
+        }
+
+        // --- Auto Play Logic ---
+        let autoPlayTimer = null;
+        let isPlaying = false;
+        let currentPageIndex = 0;
+        const pageCount = 8; // 0 (title) to 7
+        const PAGE_DURATION = 4000; // 4 seconds per page
+
+        function toggleAutoPlay() {
+            const btn = document.getElementById('autoplayBtn');
+            const icon = btn.querySelector('i');
+            
+            if (isPlaying) {
+                stopAutoPlay();
+                btn.innerHTML = '<i class="fas fa-play"></i> 自动播放';
+                btn.classList.remove('playing');
+            } else {
+                startAutoPlay();
+                btn.innerHTML = '<i class="fas fa-pause"></i> 停止';
+                btn.classList.add('playing');
+            }
+        }
+
+        function startAutoPlay() {
+            isPlaying = true;
+            
+            // If at bottom, restart
+            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 100) {
+                currentPageIndex = 0;
+                window.scrollTo({top: 0, behavior: 'smooth'});
+                // Wait for scroll to finish a bit
+                setTimeout(playNextPage, 1000);
+            } else {
+                playNextPage();
+            }
+        }
+
+        function stopAutoPlay() {
+            isPlaying = false;
+            if (autoPlayTimer) clearTimeout(autoPlayTimer);
+            updateProgressBar(0); // Reset bar
+        }
+
+        function playNextPage() {
+            if (!isPlaying) return;
+
+            // Scroll to current page index logic
+            // Since pages are ids page-0 to page-7
+            // Find next page element
+            
+            // First, determine which page is currently most visible to resume correctly?
+            // Simplified: just go to next in sequence or start
+            
+            const targetPage = document.getElementById(`page-${currentPageIndex}`);
+            
+            if (targetPage) {
+                targetPage.scrollIntoView({behavior: 'smooth', block: 'center'});
+                
+                // Start progress bar animation
+                updateProgressBar(PAGE_DURATION);
+
+                autoPlayTimer = setTimeout(() => {
+                    currentPageIndex++;
+                    if (currentPageIndex < pageCount) {
+                        playNextPage();
+                    } else {
+                        // Stop at the end
+                        toggleAutoPlay();
+                    }
+                }, PAGE_DURATION);
+            } else {
+                // If page not found, stop
+                toggleAutoPlay();
+            }
+        }
+        
+        function updateProgressBar(duration) {
+            const bar = document.getElementById('progressBar');
+            // Reset
+            bar.style.transition = 'none';
+            bar.style.width = '0%';
+            
+            if (duration > 0) {
+                // Force reflow
+                void bar.offsetWidth; 
+                // Animate
+                bar.style.transition = `width ${duration}ms linear`;
+                bar.style.width = '100%';
+            }
         }
 
         // --- Feature 1: Chat with Landlord ---
@@ -652,6 +763,7 @@
 
         function openLandlordChat() {
             chatModal.classList.add('active');
+            stopAutoPlay(); // Stop play if user interacts
         }
 
         function closeLandlordChat() {
@@ -662,7 +774,6 @@
             const text = userInput.value.trim();
             if (!text) return;
 
-            // User Message
             const userDiv = document.createElement('div');
             userDiv.className = 'chat-msg user';
             userDiv.textContent = text;
@@ -670,13 +781,11 @@
             userInput.value = '';
             chatHistory.scrollTop = chatHistory.scrollHeight;
 
-            // Loading state
             const loadingDiv = document.createElement('div');
             loadingDiv.className = 'chat-msg ai loading-dots';
             loadingDiv.textContent = '...';
             chatHistory.appendChild(loadingDiv);
 
-            // 使用 Mock 数据模拟回复
             const reply = await mockApiCall(() => {
                 const randomIndex = Math.floor(Math.random() * landlordReplies.length);
                 return landlordReplies[randomIndex];
@@ -690,26 +799,6 @@
             chatHistory.scrollTop = chatHistory.scrollHeight;
         }
 
-        // --- Feature 2: Generate Sequel ---
-        async function generateSequel() {
-            const container = document.getElementById('sequel-container');
-            const textElem = document.getElementById('sequel-text');
-            
-            container.classList.remove('hidden');
-            textElem.textContent = "正在通灵连接异界...";
-            textElem.classList.add('loading-dots');
-
-            // 使用 Mock 数据模拟生成
-            const story = await mockApiCall(() => {
-                const randomIndex = Math.floor(Math.random() * sequelStories.length);
-                return sequelStories[randomIndex];
-            });
-
-            textElem.classList.remove('loading-dots');
-            textElem.textContent = story;
-        }
-
-        // Enter key support for chat
         userInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') sendChat();
         });
