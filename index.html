@@ -1,613 +1,705 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>漫画分镜：那间农民房 (终极沉浸版)</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- 引入特殊字体 -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700;900&family=Zhi+Mang+Xing&display=swap" rel="stylesheet">
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+  Dog, 
+  User, 
+  Home, 
+  Moon, 
+  Eye, 
+  Zap, 
+  Ghost, 
+  Package, 
+  MessageSquare, 
+  AlertCircle,
+  Briefcase,
+  Droplet,
+  Cloud,
+  Sun,
+  DollarSign,
+  Music,
+  Frown,
+  Smile,
+  Meh,
+  Play,
+  Pause,
+  Volume2,
+  VolumeX
+} from 'lucide-react';
 
-    <style>
-        /* 全屏沉浸模式 */
-        body, html {
-            height: 100%;
-            margin: 0;
-            background-color: #000; /* 纯黑背景 */
-            font-family: 'Noto Serif SC', serif;
-            color: #ccc;
-            overflow: hidden; /* 禁止滚动 */
-        }
+// --- Types & Data ---
 
-        /* 幻灯片容器 */
-        #slider-container {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        /* 每一页（幻灯片） */
-        .slide {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            /* 关键修改：横向拉满，宽度占比 98%，不再限制 max-width */
-            width: 98vw; 
-            /* 高度占比 90%，留出一点点缝隙给控制栏，避免操作误触 */
-            height: 90vh;
-            opacity: 0;
-            transition: opacity 0.5s ease;
-            pointer-events: none;
-            z-index: 0;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
+type BubbleType = 'speech' | 'thought' | 'scream' | 'whisper' | 'caption' | 'sfx' | 'label';
 
-        .slide.active {
-            opacity: 1;
-            pointer-events: auto;
-            z-index: 10;
-        }
+interface ComicElement {
+  type: 'icon' | 'text' | 'shape';
+  icon?: React.ElementType;
+  text?: string;
+  className?: string; 
+  style?: React.CSSProperties;
+}
 
-        /* 漫画纸张样式 */
-        .comic-paper {
-            background-color: white;
-            padding: 10px; /* 减少内边距，让内容更大 */
-            box-shadow: 0 0 30px rgba(0,0,0,0.9);
-            border: 2px solid #111;
-            border-radius: 4px;
-            overflow: hidden;
-            color: #1a1a1a;
-            /* 撑满 slide 容器 */
-            height: 100%; 
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-        }
+interface ComicPanel {
+  id: string;
+  size: 'small' | 'medium' | 'large' | 'wide'; 
+  description?: string; 
+  bgStyle?: string; 
+  elements: ComicElement[];
+  bubbles: {
+    text: string;
+    type: BubbleType;
+    pos: string; 
+    speaker?: string;
+  }[];
+}
 
-        /* 标题页特效 (保留震动) */
-        #page-0 {
-            background: transparent;
-            box-shadow: none;
-            border: none;
-            text-align: center;
-            color: #fff;
-        }
-        
-        .title-shake {
-            animation: shake-constant 0.1s infinite;
-            display: inline-block;
-        }
+interface ComicPage {
+  pageNum: number;
+  title: string;
+  panels: ComicPanel[];
+}
 
-        /* 漫画格子通用样式 */
-        .panel {
-            border: 3px solid #000;
-            position: relative;
-            overflow: hidden;
-            background: #fff;
-            width: 100%;
-            /* 默认 flex-1，自动瓜分高度 */
-            flex: 1; 
-            margin-bottom: 6px;
-        }
-        
-        .panel:last-child {
-            margin-bottom: 0;
-        }
+const comicData: ComicPage[] = [
+  {
+    pageNum: 1,
+    title: "第1页：便宜没好货？",
+    panels: [
+      {
+        id: "p1-1",
+        size: "medium",
+        bgStyle: "bg-yellow-100 border-yellow-400",
+        description: "阿伟拖着行李箱，一脸衰样。",
+        elements: [
+          { type: 'icon', icon: User, className: "absolute bottom-0 left-4 w-24 h-24 text-gray-700 transform -scale-x-100" }, 
+          { type: 'text', text: "穷", className: "absolute top-10 left-10 text-xl font-bold text-blue-600 animate-bounce" },
+          { type: 'icon', icon: Dog, className: "absolute bottom-0 right-10 w-12 h-12 text-orange-600" },
+          { type: 'icon', icon: Briefcase, className: "absolute bottom-0 left-20 w-16 h-16 text-red-800 rotate-12" },
+        ],
+        bubbles: [
+          { text: "祖宗！慢点！为了带你，我退了市中心的房！", type: 'speech', pos: "top-2 right-2", speaker: "阿伟" },
+          { text: "2023年，房东突然禁宠。没办法，为了这只狗，我只能搬到偏远的城中村。", type: 'caption', pos: "bottom-1 left-1 bg-yellow-300 w-[95%]" }
+        ]
+      },
+      {
+        id: "p1-2",
+        size: "medium",
+        bgStyle: "bg-blue-100",
+        description: "农民房前，墙壁惨白。",
+        elements: [
+          { type: 'shape', className: "absolute right-0 bottom-0 w-2/3 h-3/4 bg-white border-4 border-gray-300" }, 
+          { type: 'text', text: "月租350!", className: "absolute top-1/3 right-10 text-3xl font-black text-red-600 rotate-[-10deg]" },
+          { type: 'icon', icon: User, className: "absolute bottom-0 left-4 w-20 h-20 text-gray-700" },
+          { type: 'icon', icon: DollarSign, className: "absolute top-20 left-8 w-6 h-6 text-yellow-500 animate-ping" }
+        ],
+        bubbles: [
+          { text: "这墙刷得比我脸还白！这么新才350一个月？赚大了！", type: 'thought', pos: "top-2 left-2" }
+        ]
+      },
+      {
+        id: "p1-3",
+        size: "wide",
+        bgStyle: "bg-orange-50",
+        description: "泰迪对着空气狂叫。",
+        elements: [
+          { type: 'icon', icon: Dog, className: "absolute bottom-4 left-10 w-20 h-20 text-orange-600" },
+          { type: 'text', text: "汪! 汪! 汪!", className: "absolute top-1/2 left-32 text-4xl font-black text-red-600" },
+          { type: 'icon', icon: User, className: "absolute bottom-4 right-10 w-24 h-24 text-gray-700" },
+          { type: 'text', text: "💢", className: "absolute top-10 right-10 text-4xl" }
+        ],
+        bubbles: [
+          { text: "刚进屋，这狗就对着空荡荡的卧室疯狂乱叫。", type: 'caption', pos: "bottom-2 right-2 w-1/3" },
+          { text: "叫什么叫！再叫今晚没肉干吃！", type: 'scream', pos: "top-4 right-1/4", speaker: "阿伟" }
+        ]
+      }
+    ]
+  },
+  {
+    pageNum: 2,
+    title: "第2页：反常的狗狗",
+    panels: [
+      {
+        id: "p2-1",
+        size: "small",
+        bgStyle: "bg-purple-100",
+        description: "狗怂了但很倔强。",
+        elements: [
+          { type: 'icon', icon: Dog, className: "absolute bottom-2 left-1/2 transform -translate-x-1/2 w-16 h-16 text-orange-600" },
+          { type: 'text', text: "呜噜噜...", className: "absolute top-2 left-2 text-sm italic text-purple-700" },
+          { type: 'icon', icon: Droplet, className: "absolute top-4 right-1/3 w-4 h-4 text-blue-400" } 
+        ],
+        bubbles: [
+          { text: "打死也不进去！", type: 'label', pos: "bottom-2 right-2 bg-red-500 text-white transform rotate-12" }
+        ]
+      },
+      {
+        id: "p2-2",
+        size: "medium",
+        bgStyle: "bg-gray-800 text-white",
+        description: "门口对峙。",
+        elements: [
+          { type: 'shape', className: "absolute left-0 h-full w-1/2 bg-yellow-100 opacity-20" }, 
+          { type: 'icon', icon: User, className: "absolute bottom-0 left-4 w-20 h-20 text-gray-300" },
+          { type: 'icon', icon: Dog, className: "absolute bottom-0 right-10 w-12 h-12 text-gray-500" },
+          { type: 'text', text: "|||", className: "absolute top-10 left-10 text-xl font-bold text-black bg-white px-1 rounded" } 
+        ],
+        bubbles: [
+          { text: "平时它都要粘着我睡床上的，今天却死活不肯进卧室一步。", type: 'caption', pos: "top-2 left-2 w-2/3" },
+          { text: "行！你就在这当门卫吧！", type: 'speech', pos: "bottom-4 right-4 text-black", speaker: "阿伟" }
+        ]
+      },
+      {
+        id: "p2-3",
+        size: "medium",
+        bgStyle: "bg-indigo-900",
+        description: "裹成蚕茧睡觉。",
+        elements: [
+          { type: 'shape', className: "absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-3/4 h-1/2 bg-white rounded-full border-4 border-gray-300" }, 
+          { type: 'icon', icon: User, className: "absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-12 h-12 text-gray-700 rotate-90" },
+          { type: 'text', text: "Zzz...", className: "absolute top-4 right-10 text-white" }
+        ],
+        bubbles: [
+          { text: "搬家太累了，我也没多想，裹紧被子就睡了。", type: 'caption', pos: "bottom-2 left-2 text-xs" }
+        ]
+      }
+    ]
+  },
+  {
+    pageNum: 3,
+    title: "第3页：半夜惊魂",
+    panels: [
+      {
+        id: "p3-1",
+        size: "small",
+        bgStyle: "bg-gray-700",
+        description: "迷迷糊糊。",
+        elements: [
+          { type: 'icon', icon: Eye, className: "absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 text-yellow-200 opacity-50" },
+          { type: 'text', text: "???", className: "absolute top-2 right-2 text-white" }
+        ],
+        bubbles: [
+          { text: "睡到半夜，迷迷糊糊感觉有人在拽我的被子...", type: 'caption', pos: "bottom-1 left-1 w-full" }
+        ]
+      },
+      {
+        id: "p3-2",
+        size: "medium",
+        bgStyle: "bg-black",
+        description: "看到人影。",
+        elements: [
+          { type: 'icon', icon: User, className: "absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-20 h-32 text-white blur-md opacity-30" }, 
+          { type: 'text', text: "长发女人!?", className: "absolute top-4 left-4 text-red-500 font-bold animate-pulse" }
+        ],
+        bubbles: [
+          { text: "睁眼一看，卧室门口好像站着个女人！", type: 'thought', pos: "bottom-2 center" }
+        ]
+      },
+      {
+        id: "p3-3",
+        size: "large",
+        bgStyle: "bg-purple-900 pattern-zigzag",
+        description: "被缠住动不了。",
+        elements: [
+          { type: 'icon', icon: Frown, className: "absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-40 h-40 text-blue-200 animate-spin-slow" },
+          { type: 'text', text: "😱", className: "absolute top-10 right-10 text-6xl" },
+          { type: 'shape', className: "absolute inset-0 border-[10px] border-blue-500 opacity-50" }, 
+          { type: 'text', text: "动不了!!", className: "absolute bottom-20 left-10 text-4xl text-white font-black" }
+        ],
+        bubbles: [
+          { text: "我想跑，但全身像被锁住一样！", type: 'caption', pos: "top-4 left-4 bg-white" },
+          { text: "鬼压床啊！！！救命！！", type: 'scream', pos: "bottom-4 right-4 bg-red-500 text-white shadow-none" } // Override shadow for contrast
+        ]
+      }
+    ]
+  },
+  {
+    pageNum: 4,
+    title: "第4页：神犬救主",
+    panels: [
+      {
+        id: "p4-1",
+        size: "wide",
+        bgStyle: "bg-yellow-400 overflow-visible",
+        description: "狗飞踢。",
+        elements: [
+          { type: 'icon', icon: Dog, className: "absolute top-0 left-1/4 w-32 h-32 text-orange-700 z-10 transform -rotate-12" },
+          { type: 'shape', className: "absolute top-10 left-0 w-full h-2 bg-white opacity-50 transform rotate-12" }, 
+          { type: 'shape', className: "absolute top-20 left-0 w-full h-2 bg-white opacity-50 transform rotate-12" }
+        ],
+        bubbles: [
+          { text: "就在这时，狗子冲了进来！", type: 'caption', pos: "bottom-2 left-2 bg-white" },
+          { text: "SUPER DOG!!", type: 'sfx', pos: "top-2 right-10 text-5xl font-black text-white italic shadow-black" }
+        ]
+      },
+      {
+        id: "p4-2",
+        size: "medium",
+        bgStyle: "bg-white",
+        description: "狗踩脸。",
+        elements: [
+          { type: 'icon', icon: User, className: "absolute bottom-0 left-1/2 transform -translate-x-1/2 w-32 h-32 text-gray-700" },
+          { type: 'icon', icon: Dog, className: "absolute bottom-10 left-1/2 transform -translate-x-1/2 w-20 h-20 text-orange-600 z-10" },
+          { type: 'text', text: "踩!", className: "absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-4xl font-black text-red-600" }
+        ],
+        bubbles: [
+          { text: "踩我嘴了！祖宗！", type: 'speech', pos: "top-2 left-2", speaker: "阿伟" }
+        ]
+      },
+      {
+        id: "p4-3",
+        size: "medium",
+        bgStyle: "bg-green-100",
+        description: "解脱，原来是被子。",
+        elements: [
+          { type: 'icon', icon: Zap, className: "absolute top-10 right-10 w-12 h-12 text-yellow-500" },
+          { type: 'text', text: "呼...", className: "absolute bottom-20 left-20 text-2xl text-green-600" },
+          { type: 'text', text: "被子太紧", className: "absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white px-2 border border-black text-xs" }
+        ],
+        bubbles: [
+          { text: "身体能动了！原来是被子卷太紧了，把自己捆住了...", type: 'speech', pos: "top-2 left-2 w-full" }
+        ]
+      }
+    ]
+  },
+  {
+    pageNum: 5,
+    title: "第5页：心痛的领悟",
+    panels: [
+      {
+        id: "p5-1",
+        size: "medium",
+        bgStyle: "bg-yellow-200",
+        description: "全屋开灯。",
+        elements: [
+          { type: 'icon', icon: Sun, className: "absolute top-4 left-4 w-8 h-8 text-orange-500 animate-spin" },
+          { type: 'icon', icon: Sun, className: "absolute top-4 right-4 w-8 h-8 text-orange-500 animate-spin" },
+          { type: 'icon', icon: Sun, className: "absolute bottom-4 left-1/2 transform -translate-x-1/2 w-8 h-8 text-orange-500 animate-spin" },
+          { type: 'icon', icon: User, className: "absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-20 h-20 text-gray-700" },
+          { type: 'icon', icon: DollarSign, className: "absolute top-1/2 left-1/2 w-10 h-10 text-green-600 animate-ping" } 
+        ],
+        bubbles: [
+          { text: "虽然没鬼，但我还是把全屋灯都打开了。心在滴血啊，电费...", type: 'thought', pos: "bottom-2 center w-full" }
+        ]
+      },
+      {
+        id: "p5-2",
+        size: "wide",
+        bgStyle: "bg-gray-100",
+        description: "各种破事。",
+        elements: [
+          { type: 'text', text: "水管: 滴答滴答", className: "absolute top-4 left-4 text-gray-500" },
+          { type: 'text', text: "门窗: 哐当哐当", className: "absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-gray-500" },
+          { type: 'text', text: "钱包: 空空如也", className: "absolute bottom-4 right-4 text-gray-500" },
+          { type: 'icon', icon: Droplet, className: "absolute top-10 left-20 w-4 h-4 text-blue-400" },
+          { type: 'text', text: "|||", className: "absolute bottom-10 right-20 font-bold" }
+        ],
+        bubbles: [
+          { text: "接连几天，这破房子不是漏水就是门响，根本没法住！主要是太费钱修了！", type: 'caption', pos: "top-0 right-0 bg-red-100" }
+        ]
+      }
+    ]
+  },
+  {
+    pageNum: 6,
+    title: "第6页：真相大白",
+    panels: [
+      {
+        id: "p6-1",
+        size: "small",
+        bgStyle: "bg-white",
+        description: "寄快递。",
+        elements: [
+          { type: 'icon', icon: Package, className: "absolute bottom-2 left-4 w-12 h-12 text-brown-500" },
+          { type: 'icon', icon: Dog, className: "absolute bottom-2 right-4 w-10 h-10 text-orange-600" },
+          { type: 'text', text: "😍", className: "absolute bottom-10 right-4 text-xs" } 
+        ],
+        bubbles: [
+          { text: "忍无可忍，我决定把行李寄回家，不租了！", type: 'caption', pos: "top-2 left-2 bg-gray-100" }
+        ]
+      },
+      {
+        id: "p6-2",
+        size: "medium",
+        bgStyle: "bg-pink-100",
+        description: "老板娘八卦脸。",
+        elements: [
+          { type: 'icon', icon: User, className: "absolute bottom-0 left-1/2 transform -translate-x-1/2 w-24 h-24 text-pink-700" }, 
+          { type: 'text', text: "✨", className: "absolute top-10 left-10 text-yellow-500" },
+          { type: 'text', text: "✨", className: "absolute top-10 right-10 text-yellow-500" }
+        ],
+        bubbles: [
+          { text: "靓仔，你住那间凶...啊不，那间新刷白的房啊？", type: 'speech', pos: "top-2 center w-full", speaker: "老板娘" }
+        ]
+      },
+      {
+        id: "p6-3",
+        size: "medium",
+        bgStyle: "bg-purple-800 text-white pattern-dots",
+        description: "说出真相。",
+        elements: [
+          { type: 'icon', icon: Ghost, className: "absolute top-4 right-4 w-16 h-16 text-white opacity-50" },
+          // Fixed positioning and added background for contrast
+          { type: 'text', text: "半年前...", className: "absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-lg font-bold bg-black text-white px-3 py-1 rounded shadow-lg z-10" }
+        ],
+        bubbles: [
+          // Changed bubble background color to yellow-300 for better visibility against purple
+          { text: "那屋有人自杀过！墙是刚刷白盖住的！", type: 'whisper', pos: "bottom-4 left-4 bg-yellow-300 text-black border-2 border-red-500 shadow-md w-[80%]" }
+        ]
+      },
+      {
+        id: "p6-4",
+        size: "small",
+        bgStyle: "bg-red-500",
+        description: "阿伟震怒。",
+        elements: [
+          { type: 'icon', icon: Zap, className: "absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-20 h-20 text-yellow-300" },
+          { type: 'text', text: "老狐狸!!", className: "absolute bottom-2 left-1/2 transform -translate-x-1/2 text-white font-black" }
+        ],
+        bubbles: [
+          { text: "怪不得墙那么新！！原来是凶宅！", type: 'scream', pos: "top-2 center w-full" }
+        ]
+      }
+    ]
+  },
+  {
+    pageNum: 7,
+    title: "第7页：愤怒的反转",
+    panels: [
+      {
+        id: "p7-1",
+        size: "medium",
+        bgStyle: "bg-white",
+        description: "拍桌子退房。",
+        elements: [
+          { type: 'icon', icon: User, className: "absolute bottom-0 left-4 w-20 h-20 text-gray-700" },
+          { type: 'text', text: "💢", className: "absolute top-10 left-10" },
+          { type: 'text', text: "退钱!!", className: "absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-4xl font-black text-red-600 transform -rotate-12" }
+        ],
+        bubbles: [
+          { text: "我气冲冲地去找房东退房！", type: 'caption', pos: "bottom-2 right-2" }
+        ]
+      },
+      {
+        id: "p7-2",
+        size: "small",
+        bgStyle: "bg-green-100",
+        description: "秒退钱。",
+        elements: [
+          { type: 'icon', icon: DollarSign, className: "absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 text-green-600" },
+          { type: 'text', text: "嗖~", className: "absolute top-2 right-2 text-gray-500 italic" }
+        ],
+        bubbles: [
+          { text: "奇怪的是，这抠门房东居然秒退款？连押金都没扣？", type: 'thought', pos: "bottom-2 left-2 w-full" }
+        ]
+      },
+      {
+        id: "p7-3",
+        size: "medium",
+        bgStyle: "bg-yellow-300",
+        description: "房东贱笑。",
+        elements: [
+          { type: 'icon', icon: Smile, className: "absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 text-yellow-600" }, 
+          { type: 'text', text: "牙签", className: "absolute bottom-10 right-1/3 bg-white text-xs border border-black px-1 transform rotate-45" },
+          { type: 'text', text: "✨", className: "absolute top-4 right-4 text-2xl" }
+        ],
+        bubbles: [
+          { text: "呵呵...怎么样？她，凶不凶？", type: 'speech', pos: "top-2 left-2", speaker: "房东" }
+        ]
+      },
+      {
+        id: "p7-4",
+        size: "large",
+        bgStyle: "bg-red-600 pattern-zigzag",
+        description: "阿伟爆炸。",
+        elements: [
+          { type: 'icon', icon: User, className: "absolute bottom-0 left-1/2 transform -translate-x-1/2 w-48 h-48 text-white animate-pulse" }, 
+          { type: 'text', text: "🔥", className: "absolute top-0 left-0 text-6xl" },
+          { type: 'text', text: "🔥", className: "absolute top-0 right-0 text-6xl" },
+          { type: 'text', text: "🔥", className: "absolute bottom-0 left-0 text-6xl" },
+          { type: 'text', text: "🔥", className: "absolute bottom-0 right-0 text-6xl" }
+        ],
+        bubbles: [
+          { text: "拿我当试胆工具人啊！！马勒戈壁！！", type: 'scream', pos: "top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[90%] text-center bg-yellow-400 text-red-600 border-4 border-black shadow-[8px_8px_0px_0px_#000] p-6 rotate-2" }
+        ]
+      }
+    ]
+  }
+];
 
-        /* 各种特效类 */
-        .dark-mood .comic-paper {
-            background-color: #1a1a1a;
-            color: #fff;
-            border-color: #555;
-        }
-        .dark-mood .panel {
-            background-color: #000;
-            border-color: #666;
-            color: #fff;
-        }
+// --- Components ---
 
-        /* 动画定义 */
-        @keyframes shake-constant {
-            0% { transform: translate(1px, 1px) rotate(0deg); }
-            50% { transform: translate(-1px, -1px) rotate(-1deg); }
-            100% { transform: translate(1px, -1px) rotate(1deg); }
-        }
-        
-        @keyframes shake-hard {
-            0% { transform: translate(2px, 2px) rotate(0deg); }
-            20% { transform: translate(-2px, -4px) rotate(-2deg); }
-            40% { transform: translate(-4px, 0px) rotate(2deg); }
-            60% { transform: translate(4px, 2px) rotate(0deg); }
-            80% { transform: translate(-2px, -2px) rotate(2deg); }
-            100% { transform: translate(2px, -4px) rotate(-2deg); }
-        }
+const Panel: React.FC<{ panel: ComicPanel }> = ({ panel }) => {
+  const getGridClass = () => {
+    switch (panel.size) {
+      case 'wide': return 'col-span-2 h-64';
+      case 'large': return 'col-span-2 h-96';
+      case 'medium': return 'col-span-1 h-64';
+      case 'small': return 'col-span-1 h-40';
+      default: return 'col-span-1 h-64';
+    }
+  };
 
-        .shake-hard { animation: shake-hard 0.2s infinite; }
-        .pulse-fear { animation: pulse-shadow 2s infinite; }
-        
-        @keyframes pulse-shadow {
-            0% { box-shadow: inset 0 0 20px #000; }
-            50% { box-shadow: inset 0 0 80px #000; }
-            100% { box-shadow: inset 0 0 20px #000; }
-        }
+  return (
+    <div className={`relative overflow-hidden border-[3px] border-black rounded-lg ${panel.bgStyle || 'bg-white'} ${getGridClass()} transition-transform hover:scale-[1.01] hover:shadow-xl group`}>
+      {/* Background Elements */}
+      {panel.elements.map((el, idx) => (
+        el.type === 'icon' && el.icon ? (
+          <el.icon key={idx} className={`${el.className}`} style={el.style} />
+        ) : el.type === 'text' ? (
+          <div key={idx} className={`${el.className} font-comic`} style={el.style}>{el.text}</div>
+        ) : (
+          <div key={idx} className={`${el.className}`} style={el.style} />
+        )
+      ))}
 
-        .screentone-dots {
-            background-image: radial-gradient(#888 15%, transparent 16%);
-            background-size: 4px 4px;
-            opacity: 0.2;
-        }
-        
-        .speed-lines {
-            background: repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(0,0,0,0.1) 40px, rgba(0,0,0,0.1) 42px);
-            position: absolute; inset: 0; z-index: 1;
-        }
+      {/* Bubbles */}
+      {panel.bubbles.map((bubble, idx) => (
+        <Bubble key={idx} bubble={bubble} />
+      ))}
+      
+      {/* Panel Number */}
+      <div className="absolute top-0 left-0 bg-yellow-400 text-black text-xs font-bold px-2 py-1 border-r-2 border-b-2 border-black rounded-br-lg z-30">
+        {panel.id.split('-')[1]}
+      </div>
+    </div>
+  );
+};
 
-        .focus-lines {
-            background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.9) 150%);
-            position: absolute; inset: 0; z-index: 2;
-        }
+const Bubble: React.FC<{ bubble: { text: string, type: BubbleType, pos: string, speaker?: string } }> = ({ bubble }) => {
+  const baseClass = "absolute z-20 p-3 text-sm leading-tight font-bold font-sans";
+  
+  let bubbleStyle = "";
+  
+  switch (bubble.type) {
+    case 'speech':
+      bubbleStyle = "bg-white border-[3px] border-black rounded-[20px] text-black shadow-[4px_4px_0px_rgba(0,0,0,0.2)]";
+      break;
+    case 'thought':
+      bubbleStyle = "bg-white border-[3px] border-dashed border-gray-400 rounded-[30px] text-gray-600 italic shadow-sm";
+      break;
+    case 'scream':
+      // Updated to remove clip-star and use a bold box instead for better visibility
+      bubbleStyle = "bg-yellow-400 border-[3px] border-black text-red-600 text-lg font-black uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transform -rotate-1";
+      break;
+    case 'whisper':
+      bubbleStyle = "bg-gray-800 text-white text-xs rounded-md border border-gray-600 opacity-90";
+      break;
+    case 'caption':
+      bubbleStyle = "bg-white border-2 border-black rounded-none shadow-[3px_3px_0_0_#000] font-mono text-xs";
+      break;
+    case 'sfx':
+      bubbleStyle = "bg-transparent text-black font-black uppercase tracking-tighter drop-shadow-[2px_2px_0_#fff] border-none p-0 text-2xl";
+      break;
+    case 'label':
+       bubbleStyle = "text-xs font-bold px-2 py-1 rounded shadow-md border-2 border-black";
+       break;
+    default:
+      bubbleStyle = "bg-white border border-black";
+  }
 
-        .sfx {
-            font-family: 'Zhi Mang Xing', cursive;
-            position: absolute;
-            font-weight: bold;
-            color: #000;
-            z-index: 20;
-            text-shadow: 2px 2px 0 #fff;
-            pointer-events: none;
-        }
-        
-        .bubble {
-            background: #fff;
-            border: 2px solid #000;
-            border-radius: 12px;
-            padding: 10px 14px;
-            position: absolute;
-            font-size: 1rem; /* 字体加大 */
-            line-height: 1.3;
-            z-index: 10;
-            color: #000;
-            box-shadow: 3px 3px 0 rgba(0,0,0,0.2);
-            max-width: 85%;
-        }
-        
-        .box-narration {
-            background: #000;
-            color: #fff;
-            padding: 8px 12px;
-            border: 1px solid #fff;
-            font-size: 0.9rem; /* 字体加大 */
-            line-height: 1.4;
-            position: absolute;
-            z-index: 10;
-            max-width: 95%;
-        }
-        
-        .nav-area {
-            position: absolute; top: 0; bottom: 0; width: 30%; z-index: 50; cursor: pointer;
-        }
-        .nav-prev { left: 0; }
-        .nav-next { right: 0; }
-        
-        .controls {
-            position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%); z-index: 100;
-            display: flex; gap: 15px; align-items: center;
-        }
+  return (
+    <div className={`${baseClass} ${bubbleStyle} ${bubble.pos}`}>
+      {bubble.speaker && (
+        <span className="block text-[10px] font-black text-gray-400 mb-1 uppercase tracking-wider">{bubble.speaker}</span>
+      )}
+      {bubble.text}
+    </div>
+  );
+};
 
-        .ctrl-btn {
-            background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.4); color: white;
-            border-radius: 50px; padding: 8px 16px; cursor: pointer; font-size: 0.9rem;
-            backdrop-filter: blur(4px); transition: all 0.3s; display: flex; align-items: center; gap: 5px;
-        }
-        .ctrl-btn:hover { background: rgba(255,255,255,0.3); }
-        .ctrl-btn.playing { background: #8b0000; border-color: red; color: #ffcccc; animation: pulse-btn 1s infinite; }
+const ComicReader: React.FC = () => {
+  const [currentPage, setCurrentPage] = useState(0);
+  const [mode, setMode] = useState<'scroll' | 'page'>('scroll');
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const scrollInterval = useRef<number | null>(null);
 
-        @keyframes pulse-btn {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
+  // "Scheming Weasel (faster version)" by Kevin MacLeod - Perfect for sneaky/funny comics
+  const BGM_URL = "https://files.freemusicarchive.org/storage-freemusicarchive-org/music/ccCommunity/Kevin_MacLeod/Oddities/Kevin_MacLeod_-_Scheming_Weasel_faster_version.mp3";
 
-        .page-indicator {
-            color: #555; font-size: 0.8rem; position: fixed; bottom: 5px; right: 10px;
-        }
+  // Cleanup auto-scroll on unmount
+  useEffect(() => {
+    return () => {
+        if (scrollInterval.current) clearInterval(scrollInterval.current);
+    }
+  }, []);
 
-        .ai-modal {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 1000;
-            display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.3s;
-        }
-        .ai-modal.active { opacity: 1; pointer-events: auto; }
-        .chat-box { width: 90%; max-width: 400px; background: #111; border: 1px solid #444; padding: 20px; border-radius: 8px; color: #ccc; }
-        .chat-history { height: 200px; overflow-y: auto; background: #000; padding: 10px; margin-bottom: 10px; }
-        .chat-msg { margin-bottom: 5px; padding: 5px; border-radius: 4px; font-size: 0.9rem; }
-        .chat-msg.user { background: #333; text-align: right; }
-        .chat-msg.ai { background: #220000; color: #ff9999; }
-        ::-webkit-scrollbar { width: 0px; background: transparent; }
-    </style>
-</head>
-<body>
+  const toggleAutoPlay = () => {
+    if (isPlaying) {
+      stopAutoPlay();
+    } else {
+      startAutoPlay();
+    }
+  };
+
+  const startAutoPlay = () => {
+    setIsPlaying(true);
+    setMode('scroll'); // TikTok needs scroll mode
     
-    <audio id="bgm" loop preload="auto">
-        <source src="https://actions.google.com/sounds/v1/horror/horror_ambience.ogg" type="audio/ogg">
-    </audio>
+    // Play Audio
+    if (audioRef.current && !isMuted) {
+      audioRef.current.play().catch(e => console.log("Audio autoplay prevented", e));
+    }
 
-    <div id="slider-container">
-        <div class="nav-area nav-prev" onclick="prevSlide()" title="上一页"></div>
-        <div class="nav-area nav-next" onclick="nextSlide()" title="下一页"></div>
+    // Auto Scroll Logic
+    if (scrollInterval.current) clearInterval(scrollInterval.current);
+    scrollInterval.current = window.setInterval(() => {
+      // 1px every 15ms is a good reading speed
+      window.scrollBy({ top: 1, behavior: 'auto' });
+      
+      // Stop when reaching bottom
+      if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 2) {
+         stopAutoPlay();
+      }
+    }, 15);
+  };
 
-        <!-- Title Slide (Page 0) - 保留震动效果 -->
-        <div class="slide active" id="slide-0">
-            <div class="flex flex-col items-center justify-center h-full">
-                <h1 class="text-7xl md:text-9xl font-bold mb-4 font-serif tracking-widest text-red-600 title-shake" style="font-family: 'Ma Shan Zheng'">
-                    那间<br>农民房
-                </h1>
-                <p class="text-gray-500 text-base mt-8 opacity-70">点击屏幕开启恐怖之旅...</p>
-                <i class="fas fa-chevron-down text-gray-700 mt-4 animate-bounce text-2xl"></i>
-            </div>
+  const stopAutoPlay = () => {
+    setIsPlaying(false);
+    if (audioRef.current) audioRef.current.pause();
+    if (scrollInterval.current) {
+        clearInterval(scrollInterval.current);
+        scrollInterval.current = null;
+    }
+  };
+
+  const toggleMute = () => {
+      setIsMuted(!isMuted);
+      if (audioRef.current) {
+          audioRef.current.muted = !isMuted;
+      }
+  };
+
+  return (
+    <div className="min-h-screen bg-yellow-50 font-sans selection:bg-orange-500 selection:text-white pb-20">
+      
+      {/* Hidden Audio Element */}
+      <audio ref={audioRef} src={BGM_URL} loop />
+
+      {/* Floating Action Controls for TikTok Mode */}
+      <div className={`fixed bottom-6 right-6 z-50 flex flex-col gap-3 transition-opacity ${isPlaying ? 'opacity-30 hover:opacity-100' : 'opacity-100'}`}>
+        <button 
+           onClick={toggleMute}
+           className="bg-white border-2 border-black p-3 rounded-full shadow-[4px_4px_0_#000] hover:translate-y-[2px] hover:shadow-[2px_2px_0_#000] transition-all"
+           title={isMuted ? "开启声音" : "静音"}
+        >
+            {isMuted ? <VolumeX className="w-6 h-6 text-gray-500" /> : <Volume2 className="w-6 h-6 text-green-600" />}
+        </button>
+        <button 
+           onClick={toggleAutoPlay}
+           className={`border-2 border-black p-4 rounded-full shadow-[4px_4px_0_#000] hover:translate-y-[2px] hover:shadow-[2px_2px_0_#000] transition-all ${isPlaying ? 'bg-red-500' : 'bg-green-500'}`}
+           title={isPlaying ? "停止播放" : "开始录屏播放"}
+        >
+            {isPlaying ? <Pause className="w-8 h-8 text-white fill-current" /> : <Play className="w-8 h-8 text-white fill-current" />}
+        </button>
+      </div>
+
+      {/* Fun Header (Hidden when playing for clean recording) */}
+      <header className={`fixed top-0 inset-x-0 z-40 bg-yellow-400 border-b-4 border-black p-3 shadow-[0_4px_0_rgba(0,0,0,0.1)] flex justify-between items-center transition-transform duration-300 ${isPlaying ? '-translate-y-full' : 'translate-y-0'}`}>
+        <div className="flex items-center gap-2">
+           <div className="bg-white border-2 border-black p-1 rounded-full">
+             <User className="w-6 h-6 text-black" />
+           </div>
+          <div>
+            <h1 className="text-xl font-black italic tracking-tighter text-black transform -rotate-1">那间农民房</h1>
+          </div>
         </div>
-
-        <!-- Slide 1 -->
-        <div class="slide" id="slide-1">
-            <div class="comic-paper">
-                <div class="text-xs text-right text-gray-400 mb-1 flex-none">Page 1</div>
-                <!-- Panel 1: 搬家 (Flex 1.5 - 给更多空间展示背景) -->
-                <div class="panel flex-[1.5] bg-gray-100 flex items-center justify-center relative">
-                    <i class="fas fa-city text-8xl text-gray-300 absolute left-4 opacity-50"></i>
-                    <div class="flex items-end z-10">
-                        <i class="fas fa-person-walking-luggage text-6xl mr-4"></i>
-                        <i class="fas fa-dog text-4xl mb-2"></i>
-                    </div>
-                    <div class="box-narration top-2 left-2 w-11/12">2023年，原房东突然不让养狗，我被迫连夜搬家。</div>
-                </div>
-                <!-- Panel 2: 新房 & 狗 (Flex 1.5) -->
-                <div class="flex gap-2 flex-[1.5] my-2 w-full">
-                    <div class="panel h-full flex items-center justify-center relative">
-                        <div class="box-narration bottom-2 right-2 text-sm bg-white border-black text-black">好不容易找到这间，房租便宜，而且墙壁粉刷得雪白。</div>
-                    </div>
-                    <div class="panel h-full flex items-center justify-center relative">
-                        <i class="fas fa-dog text-5xl absolute right-2 top-6 transform scale-x-[-1] text-black"></i>
-                        <div class="bubble right-2 top-20 text-sm">“乖，进屋了。”</div>
-                        <div class="text-sm absolute right-2 bottom-2 text-red-800 font-bold">死死盯着卧室...</div>
-                    </div>
-                </div>
-                <!-- Panel 3: 狂叫 (Flex 1.2) -->
-                <div class="panel flex-[1.2] flex items-center justify-center relative overflow-hidden">
-                    <div class="speed-lines"></div>
-                    <i class="fas fa-dog text-8xl z-10 transform -scale-x-100"></i>
-                    <div class="sfx top-2 left-4 shake-hard text-6xl">汪!!</div>
-                    <div class="sfx bottom-2 right-4 shake-hard text-5xl">汪汪!!</div>
-                    <div class="bubble left-4 top-14 text-sm font-bold border-2 border-black">“发神经啊！闭嘴！”</div>
-                </div>
-            </div>
+        <div className="flex gap-2">
+          <button 
+            onClick={() => { setMode('scroll'); stopAutoPlay(); }}
+            className={`px-4 py-1 text-sm font-bold border-2 border-black rounded-lg shadow-[2px_2px_0_#000] transition-transform active:translate-y-1 active:shadow-none ${mode === 'scroll' ? 'bg-orange-500 text-white' : 'bg-white text-black'}`}
+          >
+            长条漫
+          </button>
+          <button 
+            onClick={() => { setMode('page'); stopAutoPlay(); }}
+            className={`px-4 py-1 text-sm font-bold border-2 border-black rounded-lg shadow-[2px_2px_0_#000] transition-transform active:translate-y-1 active:shadow-none ${mode === 'page' ? 'bg-orange-500 text-white' : 'bg-white text-black'}`}
+          >
+            翻页看
+          </button>
         </div>
+      </header>
 
-        <!-- Slide 2 -->
-        <div class="slide" id="slide-2">
-            <div class="comic-paper">
-                <div class="text-xs text-right text-gray-400 mb-1 flex-none">Page 2</div>
-                <div class="flex gap-2 flex-[1.2] w-full">
-                    <!-- Low growl -->
-                    <div class="panel h-full bg-gray-800 text-white flex items-end justify-center relative">
-                        <div class="focus-lines"></div>
-                        <i class="fas fa-dog text-6xl mb-4 z-10 text-gray-400"></i>
-                        <div class="sfx text-white text-lg top-2 right-2 font-sans">呜噜噜...</div>
-                    </div>
-                    <!-- Bed -->
-                    <div class="panel h-full bg-gray-900 flex items-center justify-center text-gray-600">
-                        <i class="fas fa-bed text-6xl"></i>
-                        <div class="box-narration top-2 right-2 bg-transparent border-none text-right text-sm">平时它都要粘着我睡。</div>
-                    </div>
+      {/* Content */}
+      <main className={`pt-24 max-w-2xl mx-auto px-4 transition-all duration-300 ${isPlaying ? 'pt-4' : 'pt-24'}`}>
+        {mode === 'scroll' ? (
+          <div className="space-y-8">
+            {comicData.map((page, pIdx) => (
+              <div key={pIdx} className="bg-white border-[3px] border-black rounded-xl shadow-[8px_8px_0_rgba(0,0,0,0.2)] p-4 md:p-6 overflow-hidden relative">
+                <div className="absolute top-0 right-0 w-16 h-16 bg-yellow-200 transform rotate-45 translate-x-8 -translate-y-8 border-l-2 border-b-2 border-black"></div>
+                <h2 className="text-center font-black text-xl text-black mb-6 border-b-[3px] border-dashed border-gray-300 pb-2 flex justify-center items-center gap-2">
+                   <span className="bg-black text-white px-2 py-1 rounded text-sm">P{page.pageNum}</span>
+                   {page.title}
+                </h2>
+                <div className="grid grid-cols-2 gap-4">
+                  {page.panels.map((panel, idx) => (
+                    <Panel key={`${pIdx}-${idx}`} panel={panel} />
+                  ))}
                 </div>
-                <!-- Standoff (Flex 2 - 重点格) -->
-                <div class="panel flex-[2] bg-gray-900 relative mt-2 w-full flex flex-col justify-end">
-                    <div class="absolute inset-y-0 left-0 w-2/3 border-r-2 border-gray-600 bg-gray-800"></div> 
-                    <div class="absolute top-2 left-2 text-gray-500 text-base font-bold">卧室 (我)</div>
-                    <div class="absolute inset-y-0 right-0 w-1/3 bg-gray-700 flex items-end justify-center pb-4">
-                        <i class="fas fa-dog text-4xl text-black"></i>
-                    </div>
-                    <div class="bubble left-8 top-1/3 text-lg">“进来啊，我都关灯了。”</div>
-                    <div class="box-narration bottom-4 right-2 w-2/3 bg-black border-white">但那天，它死死守在门口，就像那里有一道看不见的墙。</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Slide 3 (Horror) -->
-        <div class="slide dark-mood" id="slide-3">
-            <div class="comic-paper border-red-900 border-4">
-                <div class="text-xs text-right text-red-800 mb-1 flex-none">Page 3</div>
-                
-                <!-- 迷糊 -->
-                <div class="panel flex-1 flex items-center justify-center filter blur-sm bg-black border-gray-700">
-                    <i class="fas fa-face-dizzy text-7xl text-gray-600"></i>
-                    <div class="box-narration top-2 left-2 text-lg">半夜，意识醒了...</div>
-                </div>
-                
-                <!-- 门口鬼影 -->
-                <div class="panel flex-[1.5] bg-black flex items-center justify-center relative border-gray-700 my-2">
-                    <div class="absolute inset-0 bg-gradient-to-t from-red-900 via-black to-black opacity-30"></div>
-                    <div class="h-40 w-12 bg-gray-800 rounded-full blur-md opacity-60"></div>
-                    <div class="box-narration bottom-4 right-4 bg-transparent border-none text-red-600 text-xl font-bold" style="font-family: 'Ma Shan Zheng'">
-                        门口...站着个女人。
-                    </div>
-                </div>
-
-                <!-- 鬼压床 -->
-                <div class="panel flex-[2] bg-gray-900 pulse-fear border-red-900 relative flex items-center justify-center">
-                    <i class="fas fa-person-procumbent text-9xl text-gray-500 opacity-40"></i>
-                    <div class="absolute inset-0 border-t-[10px] border-b-[10px] border-black opacity-60"></div>
-                    <div class="text-center z-10 w-full">
-                        <span class="text-6xl font-bold text-red-600 shake-constant block" style="font-family: 'Ma Shan Zheng'">动不了！！</span>
-                        <p class="text-gray-400 text-lg mt-4 bg-black inline-block px-2">她过来了...正在压上来...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Slide 4 (Rescue) -->
-        <div class="slide" id="slide-4">
-            <div class="comic-paper">
-                <div class="text-xs text-right text-gray-400 mb-1 flex-none">Page 4</div>
-                
-                <div class="panel flex-[2.5] relative overflow-hidden flex items-end">
-                    <div class="speed-lines" style="transform: rotate(45deg);"></div>
-                    <i class="fas fa-dog text-[150px] text-black absolute bottom-4 left-4 transform -rotate-12"></i>
-                    <div class="sfx text-9xl top-4 right-4 shake-hard">咚！！</div>
-                    <div class="box-narration top-2 left-2 bg-white text-black border-black text-base font-bold">就在我快窒息的时候！</div>
-                </div>
-
-                <div class="flex gap-2 mt-2 flex-[1.2] w-full">
-                    <div class="panel h-full flex items-center justify-center bg-gray-50">
-                        <i class="fas fa-dog text-6xl"></i>
-                        <div class="sfx top-2 left-2 text-4xl">汪!!</div>
-                        <div class="box-narration bottom-1 right-1 text-xs">冲着空气狂咬！</div>
-                    </div>
-                    <div class="panel h-full bg-yellow-100 flex items-center justify-center border-yellow-400">
-                        <div class="sfx text-6xl text-yellow-600">啪！</div>
-                        <div class="box-narration top-1 left-1 text-black bg-transparent border-none font-bold">压迫感消失了！</div>
-                    </div>
+              </div>
+            ))}
+            
+            {/* End Card for TikTok */}
+            <div className="bg-black text-white p-8 text-center rounded-xl border-[3px] border-yellow-400 shadow-[8px_8px_0_rgba(0,0,0,0.2)]">
+                <h3 className="text-2xl font-black mb-2 text-yellow-400">关注我看更多！</h3>
+                <p className="text-gray-400">点赞 + 收藏 + 转发</p>
+                <div className="flex justify-center gap-4 mt-4">
+                    <Music className="w-8 h-8 animate-bounce" />
+                    <Smile className="w-8 h-8 animate-bounce delay-100" />
+                    <Zap className="w-8 h-8 animate-bounce delay-200" />
                 </div>
             </div>
-        </div>
+          </div>
+        ) : (
+          <div className="bg-white border-[3px] border-black rounded-xl shadow-[8px_8px_0_rgba(0,0,0,0.2)] p-4 md:p-8 min-h-[70vh] flex flex-col justify-center relative overflow-hidden">
+             <div className="absolute top-0 right-0 w-24 h-24 bg-orange-200 rounded-bl-full z-0 opacity-50"></div>
+             
+             <div className="flex justify-between items-center mb-6 border-b-[3px] border-black pb-2 relative z-10">
+                <h2 className="font-black text-xl">{comicData[currentPage].title}</h2>
+                <span className="text-sm font-bold bg-black text-white px-3 py-1 rounded-full">{currentPage + 1} / {comicData.length}</span>
+             </div>
+             
+             <div className="grid grid-cols-2 gap-4 mb-8 relative z-10">
+                {comicData[currentPage].panels.map((panel, idx) => (
+                  <Panel key={`${currentPage}-${idx}`} panel={panel} />
+                ))}
+             </div>
 
-        <!-- Slide 5 (Aftermath) -->
-        <div class="slide" id="slide-5">
-            <div class="comic-paper">
-                <div class="text-xs text-right text-gray-400 mb-1 flex-none">Page 5</div>
-                
-                <div class="panel flex-[1.2] bg-yellow-50 flex items-center justify-center relative">
-                    <i class="fas fa-lightbulb text-yellow-500 text-7xl absolute top-4 left-1/2 -translate-x-1/2"></i>
-                    <div class="box-narration bottom-4 left-4 text-black bg-white border-black w-3/4 text-sm">那晚我吓得把全屋的灯都打开，抱着狗坐到了天亮。</div>
-                </div>
+             <div className="flex justify-between mt-auto relative z-10">
+               <button 
+                 disabled={currentPage === 0}
+                 onClick={() => setCurrentPage(c => c - 1)}
+                 className="px-6 py-3 bg-white border-2 border-black rounded-lg font-bold shadow-[4px_4px_0_#000] hover:translate-y-[2px] hover:shadow-[2px_2px_0_#000] disabled:opacity-50 disabled:shadow-none disabled:translate-y-0 transition-all"
+               >
+                 上一页
+               </button>
+               <button 
+                 disabled={currentPage === comicData.length - 1}
+                 onClick={() => setCurrentPage(c => c + 1)}
+                 className="px-6 py-3 bg-orange-500 text-white border-2 border-black rounded-lg font-bold shadow-[4px_4px_0_#000] hover:translate-y-[2px] hover:shadow-[2px_2px_0_#000] disabled:opacity-50 disabled:shadow-none disabled:translate-y-0 transition-all"
+               >
+                 下一页
+               </button>
+             </div>
+          </div>
+        )}
+      </main>
 
-                <div class="grid grid-cols-3 gap-1 flex-[1.2] mt-2 w-full">
-                    <div class="panel bg-gray-100 flex flex-col items-center justify-center h-full">
-                        <span class="text-sm mb-2">脚步声</span>
-                        <div class="sfx text-3xl static">哒哒</div>
-                    </div>
-                    <div class="panel bg-gray-100 flex flex-col items-center justify-center h-full">
-                        <span class="text-sm mb-2">门把转动</span>
-                        <div class="sfx text-3xl static shake-constant">咔嚓</div>
-                    </div>
-                    <div class="panel bg-gray-100 flex flex-col items-center justify-center h-full">
-                        <span class="text-sm mb-2">东西掉落</span>
-                        <div class="sfx text-3xl static font-bold">哐当</div>
-                    </div>
-                </div>
-                <div class="box-narration bottom-4 right-4 z-20 text-lg bg-black text-white px-2">但这只是开始...</div>
-            </div>
-        </div>
-
-        <!-- Slide 6 (Truth) -->
-        <div class="slide" id="slide-6">
-            <div class="comic-paper">
-                <div class="text-xs text-right text-gray-400 mb-1 flex-none">Page 6</div>
-                
-                <div class="panel flex-1 flex items-center justify-center bg-white relative">
-                    <div class="absolute top-1 left-1 text-xs border border-black px-1">几天后 快递点</div>
-                    <i class="fas fa-box text-6xl text-yellow-700 mr-4"></i>
-                    <div class="bubble right-4 top-4 text-sm w-1/2">“靓仔，你胆子真大，敢住304？”</div>
-                </div>
-
-                <div class="panel flex-[1.5] bg-gray-800 text-white relative flex items-center justify-center mt-2">
-                    <div class="screentone-dots absolute inset-0"></div>
-                    <i class="fas fa-user-secret text-8xl absolute left-4 opacity-50"></i>
-                    <div class="bubble left-20 top-8 text-black text-sm w-64 shake-constant border-red-500 border-2">
-                        “半年前，有个女租客穿着<span class="text-red-600 font-bold">红裙子</span>在里面上吊了...<br>房东为了掩盖，把墙刷了一层又一层。”
-                    </div>
-                </div>
-
-                <div class="panel flex-1 bg-black flex items-center justify-center mt-2 text-white">
-                    <div class="focus-lines"></div>
-                    <div class="text-center z-10 px-4">
-                        <p class="text-sm text-gray-400">怪不得...</p>
-                        <span class="font-bold text-3xl text-white block mt-2">那墙壁白得有些刺眼！</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Slide 7 (End) -->
-        <div class="slide" id="slide-7">
-            <div class="comic-paper border-red-600 border-4">
-                <div class="text-xs text-right text-red-600 mb-1 flex-none">Page 7 END</div>
-                
-                <div class="flex gap-2 flex-1 w-full">
-                    <div class="panel h-full flex items-center justify-center">
-                        <div class="bubble text-base font-bold w-11/12">“退房！现在就退！这房子不干净！”</div>
-                    </div>
-                    <div class="panel h-full flex items-center justify-center bg-green-50">
-                        <div class="box-narration bottom-0 text-sm text-black border-black w-full text-center">他二话不说，直接退钱。</div>
-                    </div>
-                </div>
-
-                <div class="panel flex-[1.5] bg-black flex items-center justify-center relative mt-2 border-red-900 border-2">
-                    <div class="absolute inset-0 bg-gradient-to-b from-black to-red-900 opacity-60"></div>
-                    <i class="fas fa-smile text-8xl text-white opacity-90"></i>
-                    <div class="bubble bg-black text-white border-white left-4 bottom-4 text-base w-11/12 pointer-events-none z-10 shadow-none">
-                        “呵呵...红色的漆很难盖住吧？<br><span class="text-red-500 font-serif text-2xl block mt-2 shake-constant">她，凶不凶？</span>”
-                    </div>
-                    <button onclick="openLandlordChat()" class="absolute top-2 right-2 bg-red-800 text-white text-xs px-3 py-1 rounded z-50 pointer-events-auto border border-white hover:bg-red-600">
-                        质问他
-                    </button>
-                </div>
-
-                <div class="panel flex-[1.2] bg-white flex items-center justify-center relative overflow-hidden mt-2">
-                    <div class="speed-lines"></div>
-                    <i class="fas fa-angry text-9xl text-black z-10"></i>
-                    <div class="sfx top-4 left-4 text-7xl font-bold shake-hard z-20" style="font-family: 'Ma Shan Zheng'">CNM!!</div>
-                    <div class="absolute bottom-4 right-4 text-xl font-bold border-4 border-black px-2 rotate-6 bg-white z-30">气死我了!!</div>
-                </div>
-            </div>
-        </div>
+      {/* Global Styles */}
+      <style>{`
+        .pattern-dots {
+          background-image: radial-gradient(#fff 15%, transparent 16%), radial-gradient(#fff 15%, transparent 16%);
+          background-size: 20px 20px;
+          background-position: 0 0, 10px 10px;
+        }
+        .pattern-zigzag {
+          background: linear-gradient(135deg, #ec4899 25%, transparent 25%) -10px 0/ 20px 20px, 
+                      linear-gradient(225deg, #ec4899 25%, transparent 25%) -10px 0/ 20px 20px, 
+                      linear-gradient(315deg, #ec4899 25%, transparent 25%) 0px 0/ 20px 20px, 
+                      linear-gradient(45deg, #ec4899 25%, transparent 25%) 0px 0/ 20px 20px;
+          background-color: #ef4444;
+        }
+      `}</style>
     </div>
+  );
+};
 
-    <!-- 底部控制栏 -->
-    <div class="controls">
-        <div id="playBtn" class="ctrl-btn" onclick="togglePlay()">
-            <i class="fas fa-play"></i> 播放
-        </div>
-        <div class="ctrl-btn" onclick="toggleSound()" id="soundBtn">
-            <i class="fas fa-volume-mute"></i> 声音
-        </div>
-        <div class="ctrl-btn" onclick="window.location.reload()">
-            <i class="fas fa-redo"></i> 重看
-        </div>
-    </div>
-
-    <div class="page-indicator" id="pageIndicator">Title</div>
-
-    <div id="chat-modal" class="ai-modal">
-        <div class="chat-box">
-            <div class="flex justify-between items-center border-b border-gray-600 pb-2 mb-2">
-                <span class="text-red-500 font-bold">房东</span>
-                <button onclick="document.getElementById('chat-modal').classList.remove('active')" class="text-gray-400">✕</button>
-            </div>
-            <div id="chat-history" class="chat-history">
-                <div class="chat-msg ai">“跑得挺快啊...她还没玩够呢。”</div>
-            </div>
-            <div class="flex gap-2">
-                <input type="text" id="user-input" class="flex-1 bg-gray-800 border-gray-600 text-white rounded px-2 py-1" placeholder="骂他...">
-                <button onclick="sendChat()" class="bg-red-700 text-white px-3 rounded">发送</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const totalSlides = 8;
-        let currentSlide = 0;
-        let isPlaying = false;
-        let playTimer = null;
-        
-        const slideDurations = [3000, 4000, 3500, 4000, 3000, 3000, 4500, 6000];
-        const bgm = document.getElementById('bgm');
-        let isSoundOn = false;
-
-        function toggleSound() {
-            isSoundOn = !isSoundOn;
-            const btn = document.getElementById('soundBtn');
-            if(isSoundOn) {
-                btn.innerHTML = '<i class="fas fa-volume-up"></i> 声音';
-                bgm.play().catch(e => console.log("Auto-play blocked", e));
-            } else {
-                btn.innerHTML = '<i class="fas fa-volume-mute"></i> 声音';
-                bgm.pause();
-            }
-        }
-
-        function tryPlayAudio() {
-            if(!isSoundOn && bgm.paused) { toggleSound(); }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => { updateSlideView(); });
-
-        function showSlide(index) {
-            if (index < 0 || index >= totalSlides) return;
-            document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
-            const newSlide = document.getElementById(`slide-${index}`);
-            if (newSlide) newSlide.classList.add('active');
-            currentSlide = index;
-            updateIndicator();
-        }
-
-        function nextSlide() {
-            tryPlayAudio();
-            if (currentSlide < totalSlides - 1) { showSlide(currentSlide + 1); }
-            else { stopPlay(); }
-        }
-
-        function prevSlide() {
-            if (currentSlide > 0) { showSlide(currentSlide - 1); stopPlay(); }
-        }
-
-        function updateSlideView() { showSlide(currentSlide); }
-        function updateIndicator() {
-            const ind = document.getElementById('pageIndicator');
-            ind.innerText = currentSlide === 0 ? "Title" : `${currentSlide} / ${totalSlides - 1}`;
-        }
-
-        function togglePlay() {
-            tryPlayAudio();
-            if (isPlaying) { stopPlay(); } else { startPlay(); }
-        }
-
-        function startPlay() {
-            isPlaying = true;
-            document.getElementById('playBtn').innerHTML = '<i class="fas fa-pause"></i> 暂停';
-            document.getElementById('playBtn').classList.add('playing');
-            if (currentSlide === totalSlides - 1) { currentSlide = 0; showSlide(0); }
-            queueNextSlide();
-        }
-
-        function stopPlay() {
-            isPlaying = false;
-            if (playTimer) clearTimeout(playTimer);
-            document.getElementById('playBtn').innerHTML = '<i class="fas fa-play"></i> 播放';
-            document.getElementById('playBtn').classList.remove('playing');
-        }
-
-        function queueNextSlide() {
-            if (!isPlaying) return;
-            const duration = slideDurations[currentSlide] || 4000;
-            playTimer = setTimeout(() => {
-                if (currentSlide < totalSlides - 1) { nextSlide(); queueNextSlide(); }
-                else { stopPlay(); }
-            }, duration);
-        }
-
-        const landlordReplies = [
-            "呵呵...红色的漆很难盖住的。", "她很喜欢你，特别是你的脖子。",
-            "钱退你了，但命...不知道退不退得了。", "下一位租客已经在路上了...",
-            "你的狗很有灵性，可惜它救不了你第二次。"
-        ];
-
-        function openLandlordChat() { stopPlay(); document.getElementById('chat-modal').classList.add('active'); }
-        function sendChat() {
-            const input = document.getElementById('user-input');
-            const history = document.getElementById('chat-history');
-            const text = input.value.trim();
-            if(!text) return;
-            history.innerHTML += `<div class="chat-msg user">${text}</div>`;
-            input.value = '';
-            setTimeout(() => {
-                const reply = landlordReplies[Math.floor(Math.random() * landlordReplies.length)];
-                history.innerHTML += `<div class="chat-msg ai">${reply}</div>`;
-                history.scrollTop = history.scrollHeight;
-            }, 1000);
-        }
-        
-        document.addEventListener('keydown', (e) => {
-            if(e.key === 'ArrowRight' || e.key === 'Space') nextSlide();
-            if(e.key === 'ArrowLeft') prevSlide();
-        });
-    </script>
-</body>
-</html>
+export default ComicReader;
